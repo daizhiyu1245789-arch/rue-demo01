@@ -1,3 +1,12 @@
-node_modules/
+node_modules/.bin
+node_modules/.pnpm
+node_modules/.*
+node_modules/@swc
+node_modules/@types
+node_modules/@tailwindcss
+node_modules/tailwindcss
+node_modules/typescript
+node_modules/vite
+node_modules/vite*
 dist/
 
