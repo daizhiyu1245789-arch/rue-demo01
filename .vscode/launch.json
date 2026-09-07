@@ -1,0 +1,24 @@
+{
+  "version": "0.2.0",
+  "configurations": [
+    {
+      "name": "调试 Rue 源码（Chrome）",
+      "type": "pwa-chrome",
+      "request": "launch",
+      "url": "http://127.0.0.1:5173/#/debug-rue",
+      "webRoot": "${workspaceFolder}",
+      "sourceMaps": true,
+      "skipFiles": ["<node_internals>/**"],
+      "runtimeArgs": ["--auto-open-devtools-for-tabs"]
+    },
+    {
+      "name": "调试 Rue 源码（Edge）",
+      "type": "pwa-msedge",
+      "request": "launch",
+      "url": "http://127.0.0.1:5173/#/debug-rue",
+      "webRoot": "${workspaceFolder}",
+      "sourceMaps": true,
+      "skipFiles": ["<node_internals>/**"]
+    }
+  ]
+}

@@ -1,0 +1,666 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1600" height="3090" viewBox="0 0 1600 3090" role="img" aria-labelledby="title desc">
+  <title id="title">Rue 0.8.21 全景架构与功能地图</title>
+  <desc id="desc">展示 Rue 应用从 TSX 源码经 Vite 和 SWC 编译为 Vapor setup，再通过 Rue 公共 API、Runtime 上下文、Runtime Vapor 渲染核心与响应式内核更新浏览器 DOM；覆盖 20 个源码主题，并细化组件、响应式、DOM、路由、内置组件、服务端渲染和资源清理之间的协作关系。</desc>
+
+  <defs>
+    <linearGradient id="background" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#07101f" />
+      <stop offset="0.52" stop-color="#0b1630" />
+      <stop offset="1" stop-color="#111c37" />
+    </linearGradient>
+    <linearGradient id="titleGlow" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0" stop-color="#f8fafc" />
+      <stop offset="0.45" stop-color="#c4b5fd" />
+      <stop offset="1" stop-color="#67e8f9" />
+    </linearGradient>
+    <linearGradient id="compileFill" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#5b21b6" stop-opacity="0.32" />
+      <stop offset="1" stop-color="#312e81" stop-opacity="0.2" />
+    </linearGradient>
+    <linearGradient id="runtimeFill" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#075985" stop-opacity="0.28" />
+      <stop offset="1" stop-color="#164e63" stop-opacity="0.16" />
+    </linearGradient>
+    <linearGradient id="reactiveFill" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#065f46" stop-opacity="0.3" />
+      <stop offset="1" stop-color="#064e3b" stop-opacity="0.18" />
+    </linearGradient>
+    <linearGradient id="domFill" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#9a3412" stop-opacity="0.28" />
+      <stop offset="1" stop-color="#7c2d12" stop-opacity="0.17" />
+    </linearGradient>
+    <filter id="softShadow" x="-20%" y="-20%" width="140%" height="150%">
+      <feDropShadow dx="0" dy="10" stdDeviation="12" flood-color="#020617" flood-opacity="0.34" />
+    </filter>
+    <filter id="nodeShadow" x="-20%" y="-20%" width="140%" height="150%">
+      <feDropShadow dx="0" dy="5" stdDeviation="5" flood-color="#020617" flood-opacity="0.28" />
+    </filter>
+    <marker id="arrowPurple" markerWidth="12" markerHeight="12" refX="10" refY="6" orient="auto" markerUnits="strokeWidth">
+      <path d="M1 1 L11 6 L1 11 Z" fill="#a78bfa" />
+    </marker>
+    <marker id="arrowBlue" markerWidth="12" markerHeight="12" refX="10" refY="6" orient="auto" markerUnits="strokeWidth">
+      <path d="M1 1 L11 6 L1 11 Z" fill="#38bdf8" />
+    </marker>
+    <marker id="arrowGreen" markerWidth="12" markerHeight="12" refX="10" refY="6" orient="auto" markerUnits="strokeWidth">
+      <path d="M1 1 L11 6 L1 11 Z" fill="#34d399" />
+    </marker>
+    <marker id="arrowOrange" markerWidth="12" markerHeight="12" refX="10" refY="6" orient="auto" markerUnits="strokeWidth">
+      <path d="M1 1 L11 6 L1 11 Z" fill="#fb923c" />
+    </marker>
+    <pattern id="grid" width="32" height="32" patternUnits="userSpaceOnUse">
+      <path d="M32 0H0V32" fill="none" stroke="#94a3b8" stroke-width="1" stroke-opacity="0.045" />
+    </pattern>
+  </defs>
+
+  <style>
+    .sans { font-family: Inter, "Microsoft YaHei", "PingFang SC", system-ui, sans-serif; }
+    .mono { font-family: "JetBrains Mono", "Cascadia Code", Consolas, monospace; }
+    .section-label { font-size: 18px; font-weight: 700; letter-spacing: 2px; }
+    .node-title { fill: #f8fafc; font-size: 21px; font-weight: 700; }
+    .node-subtitle { fill: #cbd5e1; font-size: 14px; font-weight: 500; }
+    .node-detail { fill: #94a3b8; font-size: 13px; }
+    .flow-label { fill: #cbd5e1; font-size: 12px; font-weight: 600; letter-spacing: 0.4px; }
+    .chip { fill: #cbd5e1; font-size: 12px; font-weight: 600; }
+    .runtime-step { fill: #e0f2fe; font-size: 13px; font-weight: 650; }
+    .feature-group { fill: #f8fafc; font-size: 18px; font-weight: 700; }
+    .feature-group-note { fill: #94a3b8; font-size: 12px; }
+    .feature-number { fill: #c4b5fd; font-size: 12px; font-weight: 700; letter-spacing: 0.8px; }
+    .feature-title { fill: #f8fafc; font-size: 16px; font-weight: 700; }
+    .feature-detail { fill: #94a3b8; font-size: 12px; }
+  </style>
+
+  <rect width="1600" height="3090" fill="url(#background)" />
+  <rect width="1600" height="3090" fill="url(#grid)" />
+  <circle cx="140" cy="95" r="250" fill="#7c3aed" opacity="0.08" />
+  <circle cx="1480" cy="880" r="330" fill="#0891b2" opacity="0.07" />
+  <circle cx="160" cy="1510" r="360" fill="#7c3aed" opacity="0.055" />
+  <circle cx="1480" cy="2210" r="390" fill="#10b981" opacity="0.055" />
+  <circle cx="130" cy="2780" r="360" fill="#f59e0b" opacity="0.045" />
+
+  <!-- Header -->
+  <g class="sans">
+    <text x="72" y="72" fill="url(#titleGlow)" font-size="38" font-weight="800">Rue 全景架构与功能地图</text>
+    <text x="72" y="103" fill="#94a3b8" font-size="15">从 TSX 编译到细粒度 DOM 更新 · 20 条源码链 + 跨模块协作细节 · @rue-js 0.8.21</text>
+    <g transform="translate(1280 52)">
+      <rect width="248" height="52" rx="16" fill="#0f172a" stroke="#334155" />
+      <circle cx="28" cy="26" r="8" fill="#34d399" />
+      <text x="48" y="23" fill="#f8fafc" font-size="13" font-weight="700">主运行链路</text>
+      <text x="48" y="40" fill="#94a3b8" font-size="11">compile once · update precisely</text>
+    </g>
+  </g>
+
+  <!-- Build-time lane -->
+  <g class="sans">
+    <text x="72" y="153" class="section-label" fill="#c4b5fd">01 · 构建期</text>
+    <rect x="64" y="170" width="1472" height="190" rx="26" fill="url(#compileFill)" stroke="#7c3aed" stroke-opacity="0.48" filter="url(#softShadow)" />
+
+    <g filter="url(#nodeShadow)">
+      <rect x="100" y="208" width="265" height="112" rx="18" fill="#17152f" stroke="#6d5bc2" />
+      <circle cx="128" cy="238" r="8" fill="#a78bfa" />
+      <text x="148" y="245" class="node-title">应用源码</text>
+      <text x="128" y="276" class="node-subtitle mono">main.ts · RootApp · *.tsx</text>
+      <text x="128" y="299" class="node-detail">组件、路由、响应式状态</text>
+    </g>
+
+    <path d="M365 264 H444" fill="none" stroke="#a78bfa" stroke-width="3" marker-end="url(#arrowPurple)" />
+    <text x="405" y="248" text-anchor="middle" class="flow-label">交给 Vite</text>
+
+    <g filter="url(#nodeShadow)">
+      <rect x="458" y="208" width="285" height="112" rx="18" fill="#17152f" stroke="#6d5bc2" />
+      <circle cx="486" cy="238" r="8" fill="#a78bfa" />
+      <text x="506" y="245" class="node-title mono">vite-plugin-rue</text>
+      <text x="486" y="276" class="node-subtitle">识别 Rue TSX / JSX</text>
+      <text x="486" y="299" class="node-detail">接入 Vite 转换管线</text>
+    </g>
+
+    <path d="M743 264 H824" fill="none" stroke="#a78bfa" stroke-width="3" marker-end="url(#arrowPurple)" />
+    <text x="783" y="248" text-anchor="middle" class="flow-label">调用 Wasm</text>
+
+    <g filter="url(#nodeShadow)">
+      <rect x="838" y="208" width="278" height="112" rx="18" fill="#17152f" stroke="#6d5bc2" />
+      <circle cx="866" cy="238" r="8" fill="#a78bfa" />
+      <text x="886" y="245" class="node-title mono">swc-plugin-rue</text>
+      <text x="866" y="276" class="node-subtitle">编译 JSX 结构与响应式绑定</text>
+      <text x="866" y="299" class="node-detail">把声明式模板变成直接 DOM 操作</text>
+    </g>
+
+    <path d="M1116 264 H1196" fill="none" stroke="#a78bfa" stroke-width="3" marker-end="url(#arrowPurple)" />
+    <text x="1156" y="248" text-anchor="middle" class="flow-label">生成</text>
+
+    <g filter="url(#nodeShadow)">
+      <rect x="1210" y="208" width="290" height="112" rx="18" fill="#17152f" stroke="#6d5bc2" />
+      <circle cx="1238" cy="238" r="8" fill="#a78bfa" />
+      <text x="1258" y="245" class="node-title">Vapor setup</text>
+      <text x="1238" y="276" class="node-subtitle mono">_$createElement · _$appendChild</text>
+      <text x="1238" y="299" class="node-detail">携带精确更新函数的可执行产物</text>
+    </g>
+  </g>
+
+  <!-- Runtime lane -->
+  <g class="sans">
+    <text x="72" y="410" class="section-label" fill="#7dd3fc">02 · 运行时</text>
+    <rect x="64" y="428" width="1472" height="472" rx="26" fill="url(#runtimeFill)" stroke="#0284c7" stroke-opacity="0.46" filter="url(#softShadow)" />
+
+    <!-- Project entry -->
+    <g filter="url(#nodeShadow)">
+      <rect x="96" y="474" width="228" height="144" rx="20" fill="#0d2036" stroke="#0ea5e9" stroke-opacity="0.8" />
+      <rect x="116" y="493" width="94" height="25" rx="12" fill="#0ea5e9" fill-opacity="0.18" />
+      <text x="163" y="510" text-anchor="middle" class="chip mono">main.ts</text>
+      <text x="116" y="550" class="node-title mono">useApp()</text>
+      <text x="116" y="580" class="node-subtitle mono">.use(router)</text>
+      <text x="116" y="603" class="node-subtitle mono">.mount('#app')</text>
+    </g>
+
+    <path d="M324 545 H388" fill="none" stroke="#38bdf8" stroke-width="3" marker-end="url(#arrowBlue)" />
+
+    <!-- Public facade -->
+    <g filter="url(#nodeShadow)">
+      <rect x="402" y="462" width="280" height="168" rx="20" fill="#0d2036" stroke="#0ea5e9" stroke-opacity="0.8" />
+      <text x="430" y="500" class="node-title mono">@rue-js/rue</text>
+      <text x="430" y="526" class="node-subtitle">稳定的公共 API 门面</text>
+      <g transform="translate(430 546)">
+        <rect width="79" height="26" rx="13" fill="#0ea5e9" fill-opacity="0.16" />
+        <text x="39.5" y="18" text-anchor="middle" class="chip">组件</text>
+        <rect x="87" width="79" height="26" rx="13" fill="#0ea5e9" fill-opacity="0.16" />
+        <text x="126.5" y="18" text-anchor="middle" class="chip">Hooks</text>
+        <rect x="174" width="79" height="26" rx="13" fill="#0ea5e9" fill-opacity="0.16" />
+        <text x="213.5" y="18" text-anchor="middle" class="chip">响应式</text>
+      </g>
+      <text x="430" y="607" class="node-detail">统一转交给 @rue-js/runtime</text>
+    </g>
+
+    <!-- Ecosystem -->
+    <g filter="url(#nodeShadow)">
+      <rect x="96" y="674" width="586" height="178" rx="20" fill="#0d2036" stroke="#0ea5e9" stroke-opacity="0.48" />
+      <text x="124" y="713" class="node-title">生态能力</text>
+      <text x="124" y="737" class="node-detail">通过组件、插件和当前容器上下文接入核心</text>
+      <g transform="translate(124 760)">
+        <rect width="160" height="60" rx="14" fill="#082f49" stroke="#075985" />
+        <text x="80" y="25" text-anchor="middle" class="node-subtitle mono">@rue-js/router</text>
+        <text x="80" y="45" text-anchor="middle" class="node-detail">Route signal · RouterView</text>
+        <rect x="172" width="122" height="60" rx="14" fill="#082f49" stroke="#075985" />
+        <text x="233" y="25" text-anchor="middle" class="node-subtitle mono">design</text>
+        <text x="233" y="45" text-anchor="middle" class="node-detail">UI 组件</text>
+        <rect x="306" width="228" height="60" rx="14" fill="#082f49" stroke="#075985" />
+        <text x="420" y="25" text-anchor="middle" class="node-subtitle">内置组件</text>
+        <text x="420" y="45" text-anchor="middle" class="node-detail">Suspense · KeepAlive · Teleport</text>
+      </g>
+    </g>
+
+    <!-- Runtime context -->
+    <path d="M682 545 H750" fill="none" stroke="#38bdf8" stroke-width="3" marker-end="url(#arrowBlue)" />
+    <text x="716" y="526" text-anchor="middle" class="flow-label">委托</text>
+    <path d="M682 752 C720 752 714 635 750 611" fill="none" stroke="#38bdf8" stroke-width="2" stroke-dasharray="7 7" marker-end="url(#arrowBlue)" />
+
+    <g filter="url(#nodeShadow)">
+      <rect x="764" y="462" width="292" height="190" rx="20" fill="#0d2036" stroke="#0ea5e9" stroke-opacity="0.8" />
+      <text x="792" y="500" class="node-title mono">@rue-js/runtime</text>
+      <text x="792" y="526" class="node-subtitle">组件语义与运行时上下文</text>
+      <line x1="792" y1="546" x2="1028" y2="546" stroke="#334155" />
+      <text x="792" y="574" class="node-detail">• client runtime / active runtime</text>
+      <text x="792" y="598" class="node-detail">• lifecycle / context / async component</text>
+      <text x="792" y="622" class="node-detail">• DOM helpers / built-in components</text>
+    </g>
+
+    <!-- Core renderer -->
+    <path d="M1056 557 H1118" fill="none" stroke="#38bdf8" stroke-width="3" marker-end="url(#arrowBlue)" />
+    <text x="1087" y="539" text-anchor="middle" class="flow-label">驱动</text>
+
+    <g filter="url(#nodeShadow)">
+      <rect x="1132" y="462" width="368" height="390" rx="20" fill="#0d2036" stroke="#0ea5e9" stroke-opacity="0.9" />
+      <text x="1160" y="500" class="node-title mono">@rue-js/runtime-vapor</text>
+      <text x="1160" y="526" class="node-subtitle">无 Virtual DOM 的渲染与更新核心</text>
+
+      <g transform="translate(1160 556)">
+        <rect width="312" height="48" rx="12" fill="#0c4a6e" stroke="#0369a1" />
+        <text x="20" y="30" class="runtime-step mono">1  appController.mount()</text>
+        <path d="M156 48 V65" stroke="#38bdf8" stroke-width="2" marker-end="url(#arrowBlue)" />
+
+        <rect y="72" width="312" height="48" rx="12" fill="#0c4a6e" stroke="#0369a1" />
+        <text x="20" y="102" class="runtime-step mono">2  renderContainer()</text>
+        <path d="M156 120 V137" stroke="#38bdf8" stroke-width="2" marker-end="url(#arrowBlue)" />
+
+        <rect y="144" width="312" height="48" rx="12" fill="#0c4a6e" stroke="#0369a1" />
+        <text x="20" y="174" class="runtime-step mono">3  mountComponent()</text>
+        <path d="M156 192 V209" stroke="#38bdf8" stroke-width="2" marker-end="url(#arrowBlue)" />
+
+        <rect y="216" width="312" height="48" rx="12" fill="#0c4a6e" stroke="#0369a1" />
+        <text x="20" y="246" class="runtime-step mono">4  renderComponent()</text>
+        <path d="M156 264 V281" stroke="#38bdf8" stroke-width="2" marker-end="url(#arrowBlue)" />
+
+        <rect y="288" width="312" height="48" rx="12" fill="#164e63" stroke="#0891b2" />
+        <text x="20" y="318" class="runtime-step mono">5  runVaporSetup()</text>
+      </g>
+    </g>
+  </g>
+
+  <!-- Update lane -->
+  <g class="sans">
+    <text x="72" y="950" class="section-label" fill="#6ee7b7">03 · 浏览器更新闭环</text>
+    <rect x="64" y="968" width="1472" height="92" rx="24" fill="url(#reactiveFill)" stroke="#059669" stroke-opacity="0.52" filter="url(#softShadow)" />
+
+    <g transform="translate(96 986)">
+      <circle cx="25" cy="28" r="21" fill="#064e3b" stroke="#10b981" />
+      <path d="M17 28h16M25 20v16" stroke="#6ee7b7" stroke-width="2.5" stroke-linecap="round" />
+      <text x="58" y="24" class="node-title" font-size="18">Signal 依赖图</text>
+      <text x="58" y="47" class="node-detail">读取时收集依赖 · 写入时只通知订阅者</text>
+    </g>
+
+    <path d="M394 1014 H492" fill="none" stroke="#34d399" stroke-width="3" marker-end="url(#arrowGreen)" />
+    <text x="443" y="998" text-anchor="middle" class="flow-label">schedule</text>
+
+    <g transform="translate(512 986)">
+      <circle cx="25" cy="28" r="21" fill="#064e3b" stroke="#10b981" />
+      <path d="M14 28h6l4-9 7 18 4-9h8" fill="none" stroke="#6ee7b7" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" />
+      <text x="58" y="24" class="node-title" font-size="18">Effect 调度器</text>
+      <text x="58" y="47" class="node-detail">batch · cleanup · effect scope</text>
+    </g>
+
+    <path d="M788 1014 H886" fill="none" stroke="#34d399" stroke-width="3" marker-end="url(#arrowGreen)" />
+    <text x="837" y="998" text-anchor="middle" class="flow-label">精确执行</text>
+
+    <g transform="translate(906 986)">
+      <circle cx="25" cy="28" r="21" fill="#7c2d12" stroke="#fb923c" />
+      <path d="M15 19h20v18H15zM15 25h20M21 19v18" fill="none" stroke="#fdba74" stroke-width="2" />
+      <text x="58" y="24" class="node-title" font-size="18">DOM Helpers</text>
+      <text x="58" y="47" class="node-detail mono">setText · setAttribute · insert</text>
+    </g>
+
+    <path d="M1192 1014 H1290" fill="none" stroke="#fb923c" stroke-width="3" marker-end="url(#arrowOrange)" />
+    <text x="1241" y="998" text-anchor="middle" class="flow-label">提交</text>
+
+    <g transform="translate(1310 986)">
+      <rect x="0" y="3" width="176" height="52" rx="13" fill="#431f12" stroke="#fb923c" />
+      <circle cx="25" cy="19" r="3" fill="#fdba74" />
+      <circle cx="36" cy="19" r="3" fill="#fdba74" opacity="0.72" />
+      <circle cx="47" cy="19" r="3" fill="#fdba74" opacity="0.45" />
+      <line x1="14" y1="29" x2="162" y2="29" stroke="#9a3412" />
+      <text x="88" y="46" text-anchor="middle" class="node-title mono" font-size="17">Browser #app</text>
+    </g>
+  </g>
+
+  <!-- Cross-lane connectors -->
+  <path d="M1355 320 V398 C1355 418 1338 424 1318 424 H932 C916 424 910 438 910 462" fill="none" stroke="#a78bfa" stroke-width="2.5" stroke-dasharray="8 8" marker-end="url(#arrowPurple)" />
+  <text x="1192" y="413" text-anchor="middle" class="flow-label sans">编译产物由 Runtime 执行</text>
+
+  <path d="M1316 852 V925 C1316 946 1110 946 1088 968" fill="none" stroke="#34d399" stroke-width="2.5" stroke-dasharray="8 8" marker-end="url(#arrowGreen)" />
+  <text x="1288" y="929" text-anchor="end" class="flow-label sans">setup 建立 signal → effect → DOM 订阅边</text>
+
+  <!-- Complete feature map -->
+  <g class="sans">
+    <text x="72" y="1122" class="section-label" fill="#c4b5fd">04 · 功能全景</text>
+    <text x="252" y="1122" fill="#94a3b8" font-size="13">与源码学习地图的 20 条调用链一一对应</text>
+    <rect x="64" y="1142" width="1472" height="582" rx="26" fill="#0f172a" fill-opacity="0.78" stroke="#475569" stroke-opacity="0.62" filter="url(#softShadow)" />
+
+    <!-- Group 1: execution -->
+    <g transform="translate(88 1164)">
+      <rect width="188" height="92" rx="17" fill="#2e1065" fill-opacity="0.55" stroke="#7c3aed" stroke-opacity="0.56" />
+      <text x="20" y="34" class="feature-group">主执行链</text>
+      <text x="20" y="57" class="feature-group-note">从源码到完整卸载</text>
+      <text x="20" y="77" class="feature-group-note mono">01 — 04</text>
+    </g>
+    <g transform="translate(292 1164)">
+      <rect width="294" height="92" rx="17" fill="#221a43" stroke="#6d5bc2" stroke-opacity="0.75" />
+      <text x="18" y="25" class="feature-number mono">01</text>
+      <text x="18" y="51" class="feature-title">编译流程</text>
+      <text x="18" y="74" class="feature-detail mono">TSX → SWC → Vapor setup</text>
+    </g>
+    <g transform="translate(600 1164)">
+      <rect width="294" height="92" rx="17" fill="#221a43" stroke="#6d5bc2" stroke-opacity="0.75" />
+      <text x="18" y="25" class="feature-number mono">02</text>
+      <text x="18" y="51" class="feature-title">首次挂载</text>
+      <text x="18" y="74" class="feature-detail mono">useApp → renderContainer</text>
+    </g>
+    <g transform="translate(908 1164)">
+      <rect width="294" height="92" rx="17" fill="#221a43" stroke="#6d5bc2" stroke-opacity="0.75" />
+      <text x="18" y="25" class="feature-number mono">03</text>
+      <text x="18" y="51" class="feature-title">组件生命周期</text>
+      <text x="18" y="74" class="feature-detail">mount · update · unmount hooks</text>
+    </g>
+    <g transform="translate(1216 1164)">
+      <rect width="294" height="92" rx="17" fill="#221a43" stroke="#6d5bc2" stroke-opacity="0.75" />
+      <text x="18" y="25" class="feature-number mono">04</text>
+      <text x="18" y="51" class="feature-title">卸载与清理</text>
+      <text x="18" y="74" class="feature-detail">DOM · Hook · effect scope</text>
+    </g>
+
+    <!-- Group 2: reactivity -->
+    <g transform="translate(88 1276)">
+      <rect width="188" height="92" rx="17" fill="#064e3b" fill-opacity="0.56" stroke="#10b981" stroke-opacity="0.55" />
+      <text x="20" y="34" class="feature-group">响应式内核</text>
+      <text x="20" y="57" class="feature-group-note">依赖、调度与派生</text>
+      <text x="20" y="77" class="feature-group-note mono">05 — 07</text>
+    </g>
+    <g transform="translate(292 1276)">
+      <rect width="396" height="92" rx="17" fill="#0b2f2a" stroke="#059669" stroke-opacity="0.72" />
+      <text x="18" y="25" class="feature-number mono" fill="#6ee7b7">05</text>
+      <text x="18" y="51" class="feature-title">依赖收集</text>
+      <text x="18" y="74" class="feature-detail">signal → effect 建立订阅边</text>
+    </g>
+    <g transform="translate(702 1276)">
+      <rect width="396" height="92" rx="17" fill="#0b2f2a" stroke="#059669" stroke-opacity="0.72" />
+      <text x="18" y="25" class="feature-number mono" fill="#6ee7b7">06</text>
+      <text x="18" y="51" class="feature-title">响应式更新</text>
+      <text x="18" y="74" class="feature-detail mono">ref.value → precise DOM</text>
+    </g>
+    <g transform="translate(1112 1276)">
+      <rect width="398" height="92" rx="17" fill="#0b2f2a" stroke="#059669" stroke-opacity="0.72" />
+      <text x="18" y="25" class="feature-number mono" fill="#6ee7b7">07</text>
+      <text x="18" y="51" class="feature-title">派生与侦听</text>
+      <text x="18" y="74" class="feature-detail">computed · watch · cleanup</text>
+    </g>
+
+    <!-- Group 3: compiled DOM -->
+    <g transform="translate(88 1388)">
+      <rect width="188" height="92" rx="17" fill="#082f49" fill-opacity="0.74" stroke="#0ea5e9" stroke-opacity="0.56" />
+      <text x="20" y="34" class="feature-group">DOM 与组件</text>
+      <text x="20" y="57" class="feature-group-note">编译后局部更新能力</text>
+      <text x="20" y="77" class="feature-group-note mono">08 — 11</text>
+    </g>
+    <g transform="translate(292 1388)">
+      <rect width="294" height="92" rx="17" fill="#0b2639" stroke="#0284c7" stroke-opacity="0.72" />
+      <text x="18" y="25" class="feature-number mono" fill="#7dd3fc">08</text>
+      <text x="18" y="51" class="feature-title">DOM 属性与事件</text>
+      <text x="18" y="74" class="feature-detail">attribute · event · form state</text>
+    </g>
+    <g transform="translate(600 1388)">
+      <rect width="294" height="92" rx="17" fill="#0b2639" stroke="#0284c7" stroke-opacity="0.72" />
+      <text x="18" y="25" class="feature-number mono" fill="#7dd3fc">09</text>
+      <text x="18" y="51" class="feature-title">条件渲染</text>
+      <text x="18" y="74" class="feature-detail mono">anchor · renderBetween</text>
+    </g>
+    <g transform="translate(908 1388)">
+      <rect width="294" height="92" rx="17" fill="#0b2639" stroke="#0284c7" stroke-opacity="0.72" />
+      <text x="18" y="25" class="feature-number mono" fill="#7dd3fc">10</text>
+      <text x="18" y="51" class="feature-title">Keyed 列表</text>
+      <text x="18" y="74" class="feature-detail">diff · move · DOM range</text>
+    </g>
+    <g transform="translate(1216 1388)">
+      <rect width="294" height="92" rx="17" fill="#0b2639" stroke="#0284c7" stroke-opacity="0.72" />
+      <text x="18" y="25" class="feature-number mono" fill="#7dd3fc">11</text>
+      <text x="18" y="51" class="feature-title">组件更新</text>
+      <text x="18" y="74" class="feature-detail">props signal · patch · rerender</text>
+    </g>
+
+    <!-- Group 4: app capabilities -->
+    <g transform="translate(88 1500)">
+      <rect width="188" height="92" rx="17" fill="#713f12" fill-opacity="0.46" stroke="#f59e0b" stroke-opacity="0.54" />
+      <text x="20" y="34" class="feature-group">应用能力</text>
+      <text x="20" y="57" class="feature-group-note">导航、注入与扩展</text>
+      <text x="20" y="77" class="feature-group-note mono">12 — 15</text>
+    </g>
+    <g transform="translate(292 1500)">
+      <rect width="294" height="92" rx="17" fill="#352611" stroke="#d97706" stroke-opacity="0.7" />
+      <text x="18" y="25" class="feature-number mono" fill="#fde68a">12</text>
+      <text x="18" y="51" class="feature-title">路由</text>
+      <text x="18" y="74" class="feature-detail">RouterLink · match · RouterView</text>
+    </g>
+    <g transform="translate(600 1500)">
+      <rect width="294" height="92" rx="17" fill="#352611" stroke="#d97706" stroke-opacity="0.7" />
+      <text x="18" y="25" class="feature-number mono" fill="#fde68a">13</text>
+      <text x="18" y="51" class="feature-title">Context</text>
+      <text x="18" y="74" class="feature-detail">Provider · descendant lookup</text>
+    </g>
+    <g transform="translate(908 1500)">
+      <rect width="294" height="92" rx="17" fill="#352611" stroke="#d97706" stroke-opacity="0.7" />
+      <text x="18" y="25" class="feature-number mono" fill="#fde68a">14</text>
+      <text x="18" y="51" class="feature-title">错误边界</text>
+      <text x="18" y="74" class="feature-detail">component → app error handler</text>
+    </g>
+    <g transform="translate(1216 1500)">
+      <rect width="294" height="92" rx="17" fill="#352611" stroke="#d97706" stroke-opacity="0.7" />
+      <text x="18" y="25" class="feature-number mono" fill="#fde68a">15</text>
+      <text x="18" y="51" class="feature-title">扩展系统</text>
+      <text x="18" y="74" class="feature-detail">plugins · component registry</text>
+    </g>
+
+    <!-- Group 5: advanced rendering -->
+    <g transform="translate(88 1612)">
+      <rect width="188" height="92" rx="17" fill="#4c0519" fill-opacity="0.48" stroke="#ec4899" stroke-opacity="0.5" />
+      <text x="20" y="34" class="feature-group">高级渲染</text>
+      <text x="20" y="57" class="feature-group-note">边界、缓存与服务端</text>
+      <text x="20" y="77" class="feature-group-note mono">16 — 20</text>
+    </g>
+    <g transform="translate(292 1612)">
+      <rect width="232" height="92" rx="17" fill="#351325" stroke="#db2777" stroke-opacity="0.68" />
+      <text x="16" y="25" class="feature-number mono" fill="#f9a8d4">16</text>
+      <text x="16" y="51" class="feature-title">Teleport</text>
+      <text x="16" y="74" class="feature-detail">跨容器双锚点</text>
+    </g>
+    <g transform="translate(538 1612)">
+      <rect width="232" height="92" rx="17" fill="#351325" stroke="#db2777" stroke-opacity="0.68" />
+      <text x="16" y="25" class="feature-number mono" fill="#f9a8d4">17</text>
+      <text x="16" y="51" class="feature-title">Suspense</text>
+      <text x="16" y="74" class="feature-detail">async · fallback · retry</text>
+    </g>
+    <g transform="translate(784 1612)">
+      <rect width="232" height="92" rx="17" fill="#351325" stroke="#db2777" stroke-opacity="0.68" />
+      <text x="16" y="25" class="feature-number mono" fill="#f9a8d4">18</text>
+      <text x="16" y="51" class="feature-title">KeepAlive</text>
+      <text x="16" y="74" class="feature-detail">cache · activate · evict</text>
+    </g>
+    <g transform="translate(1030 1612)">
+      <rect width="232" height="92" rx="17" fill="#351325" stroke="#db2777" stroke-opacity="0.68" />
+      <text x="16" y="25" class="feature-number mono" fill="#f9a8d4">19</text>
+      <text x="16" y="51" class="feature-title">Transition</text>
+      <text x="16" y="74" class="feature-detail">enter · leave · mode</text>
+    </g>
+    <g transform="translate(1276 1612)">
+      <rect width="234" height="92" rx="17" fill="#351325" stroke="#db2777" stroke-opacity="0.68" />
+      <text x="16" y="25" class="feature-number mono" fill="#f9a8d4">20</text>
+      <text x="16" y="51" class="feature-title">SSR / 水合 / Island</text>
+      <text x="16" y="74" class="feature-detail">server → hydrate → client</text>
+    </g>
+  </g>
+
+  <!-- Detailed internals -->
+  <g class="sans">
+    <text x="72" y="1788" class="section-label" fill="#7dd3fc">05 · 核心内部细化</text>
+    <text x="280" y="1788" fill="#94a3b8" font-size="13">四个子系统如何接力；箭头表示主要控制流，虚线表示通知或上下文关系</text>
+    <rect x="64" y="1808" width="1472" height="550" rx="26" fill="#0b172a" fill-opacity="0.88" stroke="#0ea5e9" stroke-opacity="0.42" filter="url(#softShadow)" />
+
+    <!-- mount pipeline -->
+    <g transform="translate(88 1832)">
+      <rect width="344" height="496" rx="20" fill="#0d2036" stroke="#0284c7" stroke-opacity="0.72" />
+      <text x="22" y="36" class="feature-number mono" fill="#7dd3fc">A · MOUNT PIPELINE</text>
+      <text x="22" y="66" class="feature-group">挂载与输入分派</text>
+      <text x="22" y="88" class="feature-group-note mono">runtime-vapor / js-runtime</text>
+      <g transform="translate(20 112)">
+        <rect width="304" height="46" rx="11" fill="#0c4a6e" stroke="#0369a1" />
+        <text x="16" y="29" class="runtime-step mono">runWithClientRuntime()</text>
+        <path d="M152 46V62" stroke="#38bdf8" stroke-width="2" marker-end="url(#arrowBlue)" />
+        <rect y="68" width="304" height="46" rx="11" fill="#0c4a6e" stroke="#0369a1" />
+        <text x="16" y="97" class="runtime-step mono">appController.mount()</text>
+        <path d="M152 114V130" stroke="#38bdf8" stroke-width="2" marker-end="url(#arrowBlue)" />
+        <rect y="136" width="304" height="46" rx="11" fill="#0c4a6e" stroke="#0369a1" />
+        <text x="16" y="165" class="runtime-step mono">recordInput → renderContainer</text>
+        <path d="M152 182V198" stroke="#38bdf8" stroke-width="2" marker-end="url(#arrowBlue)" />
+        <rect y="204" width="304" height="72" rx="11" fill="#082f49" stroke="#0369a1" />
+        <text x="16" y="231" class="runtime-step mono">mountInput(kind)</text>
+        <text x="16" y="255" class="node-detail mono">text · node · component · vapor</text>
+        <path d="M152 276V292" stroke="#38bdf8" stroke-width="2" marker-end="url(#arrowBlue)" />
+        <rect y="298" width="304" height="64" rx="11" fill="#164e63" stroke="#0891b2" />
+        <text x="16" y="325" class="runtime-step mono">mountComponent / mountVapor</text>
+        <text x="16" y="348" class="node-detail">返回 MountedRecord · dispose · range</text>
+      </g>
+      <text x="22" y="464" class="node-detail">出口：commitMountedContainer → #app</text>
+    </g>
+
+    <!-- component system -->
+    <g transform="translate(448 1832)">
+      <rect width="344" height="496" rx="20" fill="#17152f" stroke="#7c3aed" stroke-opacity="0.68" />
+      <text x="22" y="36" class="feature-number mono">B · COMPONENT MODEL</text>
+      <text x="22" y="66" class="feature-group">组件实例与语义</text>
+      <text x="22" y="88" class="feature-group-note mono">runtime + runtime-vapor</text>
+      <g transform="translate(20 112)">
+        <rect width="304" height="62" rx="12" fill="#221a43" stroke="#6d5bc2" />
+        <text x="16" y="26" class="runtime-step mono" fill="#ede9fe">prepare(instance)</text>
+        <text x="16" y="48" class="node-detail">parent · host · props · children</text>
+        <path d="M152 62V78" stroke="#a78bfa" stroke-width="2" marker-end="url(#arrowPurple)" />
+        <rect y="84" width="304" height="62" rx="12" fill="#221a43" stroke="#6d5bc2" />
+        <text x="16" y="110" class="runtime-step mono" fill="#ede9fe">renderHooks → component(props)</text>
+        <text x="16" y="132" class="node-detail">owning runtime · current instance</text>
+        <path d="M152 146V162" stroke="#a78bfa" stroke-width="2" marker-end="url(#arrowPurple)" />
+        <rect y="168" width="304" height="62" rx="12" fill="#221a43" stroke="#6d5bc2" />
+        <text x="16" y="194" class="runtime-step mono" fill="#ede9fe">normalize result → subtree</text>
+        <text x="16" y="216" class="node-detail">render effect 或细粒度 props patch</text>
+      </g>
+      <g transform="translate(20 364)">
+        <rect width="92" height="42" rx="10" fill="#2e1065" stroke="#7c3aed" />
+        <text x="46" y="27" text-anchor="middle" class="chip">Lifecycle</text>
+        <rect x="106" width="92" height="42" rx="10" fill="#2e1065" stroke="#7c3aed" />
+        <text x="152" y="27" text-anchor="middle" class="chip">Context</text>
+        <rect x="212" width="92" height="42" rx="10" fill="#2e1065" stroke="#7c3aed" />
+        <text x="258" y="27" text-anchor="middle" class="chip">Errors</text>
+      </g>
+      <text x="22" y="439" class="node-detail">mounted 在最外层 render entry 退出时刷新</text>
+      <text x="22" y="464" class="node-detail">Context 沿 instance.parent 向上查找 Provider</text>
+    </g>
+
+    <!-- reactive graph -->
+    <g transform="translate(808 1832)">
+      <rect width="344" height="496" rx="20" fill="#0b2f2a" stroke="#10b981" stroke-opacity="0.65" />
+      <text x="22" y="36" class="feature-number mono" fill="#6ee7b7">C · REACTIVE KERNEL</text>
+      <text x="22" y="66" class="feature-group">依赖图与调度</text>
+      <text x="22" y="88" class="feature-group-note mono">runtime-vapor / reactive-kernel</text>
+      <g transform="translate(20 112)">
+        <rect width="304" height="62" rx="12" fill="#064e3b" stroke="#059669" />
+        <text x="16" y="26" class="runtime-step mono" fill="#d1fae5">SignalNode.read / write</text>
+        <text x="16" y="48" class="node-detail">valueVersion · subscriber edges</text>
+        <path d="M152 62V78" stroke="#34d399" stroke-width="2" marker-end="url(#arrowGreen)" />
+        <rect y="84" width="304" height="62" rx="12" fill="#064e3b" stroke="#059669" />
+        <text x="16" y="110" class="runtime-step mono" fill="#d1fae5">beginTracking / endTracking</text>
+        <text x="16" y="132" class="node-detail">本轮读依赖 · 移除过期边</text>
+        <path d="M152 146V162" stroke="#34d399" stroke-width="2" marker-end="url(#arrowGreen)" />
+        <rect y="168" width="304" height="62" rx="12" fill="#064e3b" stroke="#059669" />
+        <text x="16" y="194" class="runtime-step mono" fill="#d1fae5">runEffect / runComputed</text>
+        <text x="16" y="216" class="node-detail">effect body · computed version gate</text>
+      </g>
+      <g transform="translate(20 364)">
+        <rect width="92" height="42" rx="10" fill="#064e3b" stroke="#10b981" />
+        <text x="46" y="27" text-anchor="middle" class="chip">batch</text>
+        <rect x="106" width="92" height="42" rx="10" fill="#064e3b" stroke="#10b981" />
+        <text x="152" y="27" text-anchor="middle" class="chip">scheduler</text>
+        <rect x="212" width="92" height="42" rx="10" fill="#064e3b" stroke="#10b981" />
+        <text x="258" y="27" text-anchor="middle" class="chip">scope</text>
+      </g>
+      <text x="22" y="439" class="node-detail">sync / microtask / frame / custom scheduler</text>
+      <text x="22" y="464" class="node-detail">watch cleanup 在重跑或 dispose 前执行</text>
+    </g>
+
+    <!-- DOM system -->
+    <g transform="translate(1168 1832)">
+      <rect width="344" height="496" rx="20" fill="#351f14" stroke="#fb923c" stroke-opacity="0.62" />
+      <text x="22" y="36" class="feature-number mono" fill="#fdba74">D · DOM PATCHING</text>
+      <text x="22" y="66" class="feature-group">局部 DOM 与范围</text>
+      <text x="22" y="88" class="feature-group-note mono">compiled helpers + host ops</text>
+      <g transform="translate(20 112)">
+        <rect width="304" height="58" rx="12" fill="#431f12" stroke="#c2410c" />
+        <text x="16" y="25" class="runtime-step mono" fill="#ffedd5">text / attr / prop / event</text>
+        <text x="16" y="46" class="node-detail">表单状态 · 事件修饰符</text>
+        <rect y="72" width="304" height="58" rx="12" fill="#431f12" stroke="#c2410c" />
+        <text x="16" y="97" class="runtime-step mono" fill="#ffedd5">conditional anchor range</text>
+        <text x="16" y="118" class="node-detail">skip · patch · remount</text>
+        <rect y="144" width="304" height="58" rx="12" fill="#431f12" stroke="#c2410c" />
+        <text x="16" y="169" class="runtime-step mono" fill="#ffedd5">keyed list reconcile</text>
+        <text x="16" y="190" class="node-detail">prefix/suffix · key map · LIS · move</text>
+        <rect y="216" width="304" height="58" rx="12" fill="#431f12" stroke="#c2410c" />
+        <text x="16" y="241" class="runtime-step mono" fill="#ffedd5">insertBefore / remove range</text>
+        <text x="16" y="262" class="node-detail">直接操作真实 DOM，无 VDOM diff</text>
+      </g>
+      <text x="22" y="425" class="node-detail">Teleport：源锚点 + 目标锚点</text>
+      <text x="22" y="447" class="node-detail">Transition：enter / leave 回调接力</text>
+      <text x="22" y="469" class="node-detail">KeepAlive：移动范围，不销毁缓存实例</text>
+    </g>
+  </g>
+
+  <!-- Cross-feature collaboration -->
+  <g class="sans">
+    <text x="72" y="2418" class="section-label" fill="#fcd34d">06 · 跨功能协作链</text>
+    <text x="280" y="2418" fill="#94a3b8" font-size="13">这些能力不是孤岛；一次交互可能横跨事件、调度、边界与渲染器</text>
+    <rect x="64" y="2438" width="1472" height="382" rx="26" fill="#151827" fill-opacity="0.9" stroke="#f59e0b" stroke-opacity="0.4" filter="url(#softShadow)" />
+
+    <g transform="translate(88 2462)">
+      <rect width="344" height="330" rx="18" fill="#28200f" stroke="#d97706" stroke-opacity="0.65" />
+      <text x="20" y="34" class="feature-number mono" fill="#fde68a">ROUTER · 导航提交</text>
+      <text x="20" y="65" class="feature-title">Link / push / history</text>
+      <text x="20" y="98" class="node-detail mono">RouterLink click</text>
+      <text x="20" y="124" class="node-detail mono">→ navigate(push | replace)</text>
+      <text x="20" y="150" class="node-detail mono">→ match + beforeNavigation</text>
+      <text x="20" y="176" class="node-detail mono">→ sync commit 或 async guards</text>
+      <text x="20" y="202" class="node-detail mono">→ history settle → route signal</text>
+      <line x1="20" y1="224" x2="324" y2="224" stroke="#713f12" />
+      <text x="20" y="251" class="node-detail">route signal 通知 RouterView；懒组件</text>
+      <text x="20" y="274" class="node-detail">Promise 完成后才进入后续组件渲染栈。</text>
+      <text x="20" y="305" class="feature-group-note">关键观察：requestId · pendingNavigation</text>
+    </g>
+
+    <g transform="translate(448 2462)">
+      <rect width="344" height="330" rx="18" fill="#281426" stroke="#db2777" stroke-opacity="0.62" />
+      <text x="20" y="34" class="feature-number mono" fill="#f9a8d4">ASYNC BOUNDARY · 异步边界</text>
+      <text x="20" y="65" class="feature-title">Suspense + async component</text>
+      <text x="20" y="98" class="node-detail mono">register pending dependency</text>
+      <text x="20" y="124" class="node-detail mono">→ propagate to parent boundary</text>
+      <text x="20" y="150" class="node-detail mono">→ render fallback</text>
+      <text x="20" y="176" class="node-detail mono">→ Promise settle / generation check</text>
+      <text x="20" y="202" class="node-detail mono">→ retry → show content</text>
+      <line x1="20" y1="224" x2="324" y2="224" stroke="#4c0519" />
+      <text x="20" y="251" class="node-detail">旧 generation 的结果会被忽略；真正的</text>
+      <text x="20" y="274" class="node-detail">render 异常进入 error capture，而非当作 pending。</text>
+      <text x="20" y="305" class="feature-group-note">关键观察：pending · generation · parent</text>
+    </g>
+
+    <g transform="translate(808 2462)">
+      <rect width="344" height="330" rx="18" fill="#18221d" stroke="#10b981" stroke-opacity="0.58" />
+      <text x="20" y="34" class="feature-number mono" fill="#6ee7b7">CACHE + MOTION · 缓存与动效</text>
+      <text x="20" y="65" class="feature-title">KeepAlive + Transition</text>
+      <text x="20" y="98" class="node-detail mono">cache miss → mount → active</text>
+      <text x="20" y="124" class="node-detail mono">cache hit → move range → activate</text>
+      <text x="20" y="150" class="node-detail mono">deactivate → offline container</text>
+      <text x="20" y="176" class="node-detail mono">LRU evict → final dispose</text>
+      <text x="20" y="202" class="node-detail mono">Transition mode 接力 enter / leave</text>
+      <line x1="20" y1="224" x2="324" y2="224" stroke="#064e3b" />
+      <text x="20" y="251" class="node-detail">state=0 是缓存失活，state=2 才是最终卸载；</text>
+      <text x="20" y="274" class="node-detail">out-in / in-out 决定新旧范围的先后顺序。</text>
+      <text x="20" y="305" class="feature-group-note">关键观察：key · state · renderVersion</text>
+    </g>
+
+    <g transform="translate(1168 2462)">
+      <rect width="344" height="330" rx="18" fill="#182033" stroke="#60a5fa" stroke-opacity="0.58" />
+      <text x="20" y="34" class="feature-number mono" fill="#93c5fd">SERVER ↔ CLIENT · 同构链</text>
+      <text x="20" y="65" class="feature-title">SSR / Hydration / Island</text>
+      <text x="20" y="98" class="node-detail mono">server render → serialize HTML/state</text>
+      <text x="20" y="124" class="node-detail mono">→ island protocol markers</text>
+      <text x="20" y="150" class="node-detail mono">→ loader resolve module</text>
+      <text x="20" y="176" class="node-detail mono">→ adopt existing DOM / hydrate</text>
+      <text x="20" y="202" class="node-detail mono">→ mismatch policy / render fallback</text>
+      <line x1="20" y1="224" x2="324" y2="224" stroke="#1e3a8a" />
+      <text x="20" y="251" class="node-detail">自定义 module.mount/hydrate 可自行接管；</text>
+      <text x="20" y="274" class="node-detail">null 才回退普通 render，异常会继续上抛。</text>
+      <text x="20" y="305" class="feature-group-note">关键观察：mode · commitStatus · mismatch</text>
+    </g>
+  </g>
+
+  <!-- Resource lifecycle and debugging map -->
+  <g class="sans">
+    <text x="72" y="2880" class="section-label" fill="#fca5a5">07 · 资源生命周期与调试入口</text>
+    <rect x="64" y="2900" width="1472" height="136" rx="24" fill="#24151d" fill-opacity="0.86" stroke="#ef4444" stroke-opacity="0.35" />
+    <g transform="translate(92 2923)">
+      <text x="0" y="22" class="feature-number mono" fill="#fca5a5">创建</text>
+      <text x="0" y="49" class="node-detail">app mount transaction · component instance · render effect · DOM range</text>
+      <path d="M346 40H412" stroke="#fb7185" stroke-width="2" marker-end="url(#arrowOrange)" />
+      <text x="440" y="22" class="feature-number mono" fill="#fca5a5">存活</text>
+      <text x="440" y="49" class="node-detail">props signal · context chain · lifecycle queue · scheduler jobs</text>
+      <path d="M782 40H848" stroke="#fb7185" stroke-width="2" marker-end="url(#arrowOrange)" />
+      <text x="876" y="22" class="feature-number mono" fill="#fca5a5">释放</text>
+      <text x="876" y="49" class="node-detail">before_unmount → effect.dispose → scope cleanup → subtree.dispose → unmounted</text>
+      <text x="0" y="89" fill="#94a3b8" font-size="12">断点顺序：实际调用处 → 回调入口 → 目标函数；异步链在恢复入口另下断点。失败事务与 runtime.free() 是需要单独核验的路径。</text>
+    </g>
+  </g>
+
+  <!-- Footer note -->
+  <g class="sans" transform="translate(72 3073)">
+    <circle cx="5" cy="-5" r="4" fill="#38bdf8" />
+    <text x="18" y="0" fill="#64748b" font-size="12">主线：main.ts → useApp.mount → runtime.mount → renderContainer → mountComponent → renderComponent → Vapor setup → DOM；下方 20 个主题可在学习地图中逐步展开。</text>
+  </g>
+</svg>
