@@ -1,0 +1,156 @@
+rueSourceGuide.data["domBinding"] = {
+  "title": "DOM 属性与事件：编译 helper 如何落到原生浏览器 API",
+  "rows": []
+};
+rueSourceGuide.data["domBinding"].rows.push(...[
+  {
+    "title": "_$ DOM helper aliases",
+    "file": "node_modules/@rue-js/runtime/src/vapor.ts",
+    "line": 35,
+    "code": "export {\n  createComment as _$createComment,\n  createTextNode as _$createTextNode,\n  createElement as _$createElement,\n  createTextWrapper as _$createTextWrapper,\n  setStyle as _$setStyle,\n  settextContent as _$settextContent,\n  createDocumentFragment as _$createDocumentFragment,",
+    "kind": "别名",
+    "note": "转换模块执行时会直接调用这些别名；创建标签的 _$createElement 首先落到 runtime 的 createElement()",
+    "watch": "转换结果顶部的 _$ imports",
+    "section": "编译别名绑定",
+    "originalStep": 1,
+    "sectionStart": true
+  },
+  {
+    "title": "编译 helper 导出别名",
+    "file": "node_modules/@rue-js/runtime/src/vapor.ts",
+    "line": 38,
+    "code": "  createElement as _$createElement,\n  createTextWrapper as _$createTextWrapper,\n  setStyle as _$setStyle,\n  settextContent as _$settextContent,\n  createDocumentFragment as _$createDocumentFragment,\n  appendChild as _$appendChild,\n  insertBefore as _$insertBefore,",
+    "kind": "衔接代码",
+    "note": "createElement as _$createElement",
+    "section": "编译别名绑定",
+    "originalStep": 1,
+    "sectionStart": false
+  },
+  {
+    "title": "createElement()",
+    "file": "node_modules/@rue-js/runtime/src/dom.ts",
+    "line": 1747,
+    "code": "export const createElement = (tag: string, parent?: DomElementLike | null) => {\n  /*\n   * [10 创建 HTML 元素]\n   * 调用链：setup() -> _$createElement() -> createElement() -> document.createElement()。\n   * 观察：tag、resolvedParent、返回的 Element。\n   */\n  // oxlint-disable-next-line no-debugger -- Rue 源码学习用自动断点。\n  if ((globalThis as any).__RUE_RENDER_DEBUG__?.take('10.dom-create-element')) debugger",
+    "kind": "顺序",
+    "note": "元素返回给编译产物后，后续生成指令按属性类型选择 setAttribute、setProperty 或 spreadAttributes；下一步先看普通 attribute 分支",
+    "watch": "tag、resolvedParent、activeDOMHostOperationContext",
+    "section": "创建元素",
+    "originalStep": 2,
+    "sectionStart": true,
+    "definitionId": "fn-119"
+  },
+  {
+    "title": "setAttribute()",
+    "file": "node_modules/@rue-js/runtime/src/dom.ts",
+    "line": 1849,
+    "code": "export const setAttribute = (el: DomElementLike, name: string, value: any) => {\n  /*\n   * [13 写入 HTML 属性]\n   * 调用链：setup() -> _$setAttribute() -> setAttribute() -> el.setAttribute()。\n   * 观察：el、name、value、el.attributes。\n   */\n  // oxlint-disable-next-line no-debugger -- Rue 源码学习用自动断点。\n  if ((globalThis as any).__RUE_RENDER_DEBUG__?.take('13.dom-set-attribute')) debugger",
+    "kind": "另一路径",
+    "note": "setAttribute 分支到此结束；property 绑定走并列的 setProperty() 路径，并不是 setAttribute 再调用它",
+    "watch": "name、value、el.attributes",
+    "section": "普通 attribute 绑定",
+    "originalStep": 3,
+    "sectionStart": true,
+    "definitionId": "fn-120"
+  },
+  {
+    "title": "setProperty()",
+    "file": "node_modules/@rue-js/runtime/src/dom.ts",
+    "line": 1901,
+    "code": "export const setProperty = (el: DomElementLike, name: string, value: any) => {\n  const target = el as Record<string, unknown>\n  if (value === undefined || value === null || value === false) {\n    try {\n      delete target[name]\n    } catch {\n      target[name] = undefined\n    }",
+    "kind": "另一路径",
+    "note": "单个 property 分支结束；遇到对象展开时，编译产物改调 spreadAttributes()，由它批量比较并分派每个键",
+    "watch": "target[name]、notifyCustomElementPropertyChanged",
+    "section": "property 绑定",
+    "originalStep": 4,
+    "sectionStart": true,
+    "definitionId": "fn-121"
+  },
+  {
+    "title": "spreadAttributes() → setSpreadAttribute()",
+    "file": "node_modules/@rue-js/runtime/src/dom.ts",
+    "line": 2215,
+    "code": "export const spreadAttributes = (\n  el: DomElementLike,\n  props: Record<string, any> | null | undefined,\n) => {\n  const next = props && typeof props === 'object' ? props : {}\n  const state = getSpreadAttributesState(el)\n  const keys = Object.keys(next)\n  const record = resolveSpreadAttributesRecord(state, next, keys)",
+    "kind": "另一路径",
+    "note": "spreadAttributes() 经 applySpreadAttributes() / setSpreadAttribute() 比较属性。事件键直接调用 addEventListener(el, eventName, value)，不会调用 vaporWithEventModifiers()。下一步的修饰符包装由编译生成代码另行使用；两条路径在 addEventListener 处汇合。",
+    "watch": "state.merged、record.keys、previous、value",
+    "section": "对象展开绑定",
+    "originalStep": 5,
+    "sectionStart": true,
+    "definitionId": "fn-122"
+  },
+  {
+    "title": "spread 的事件分支直接注册 handler",
+    "file": "node_modules/@rue-js/runtime/src/dom.ts",
+    "line": 2043,
+    "code": "      addEventListener(el, eventName, value)\n    }\n    return\n  }\n  if (shouldUseDomProperty(el, key, value) || shouldUseDomProperty(el, key, previous)) {\n    setProperty(el, key, value)\n    return",
+    "kind": "衔接代码",
+    "note": "addEventListener(el, eventName, value)",
+    "section": "对象展开绑定",
+    "originalStep": 5,
+    "sectionStart": false,
+    "definitionId": "fn-123"
+  },
+  {
+    "title": "vaporWithEventModifiers()",
+    "file": "node_modules/@rue-js/runtime/src/vapor-helpers.ts",
+    "line": 284,
+    "code": "export const vaporWithEventModifiers = (\n  handler: DOMEventHandler,\n  modifiers: string[],\n): DOMEventHandler => {\n  const normalizedModifiers = modifiers.map(modifier => String(modifier).toLowerCase())\n  const systemModifiers = new Set(\n    normalizedModifiers.filter(modifier => systemModifierNames.includes(modifier as any)),\n  )",
+    "kind": "回调",
+    "note": "包装后的 handler 传给 addEventListener helper；在真正注册前，bindEventHandlerToCurrentRuntime() 先捕获当前 Rue runtime",
+    "watch": "modifiers、event、__rue_options",
+    "section": "带修饰符的事件绑定",
+    "originalStep": 6,
+    "sectionStart": true,
+    "definitionId": "fn-124"
+  },
+  {
+    "title": "公共 addEventListener 的绑定入口",
+    "file": "node_modules/@rue-js/runtime/src/dom.ts",
+    "line": 820,
+    "code": "  const boundListener = bindEventHandlerToCurrentRuntime(listener)\n  const options = boundListener?.__rue_options\n  if (options !== undefined) {\n    el.addEventListener(eventName, boundListener, options)\n    return\n  }\n  el.addEventListener(eventName, boundListener)",
+    "kind": "衔接代码",
+    "note": "bindEventHandlerToCurrentRuntime(listener)",
+    "section": "带修饰符的事件绑定",
+    "originalStep": 6,
+    "sectionStart": false,
+    "definitionId": "fn-125"
+  },
+  {
+    "title": "bindEventHandlerToCurrentRuntime()",
+    "file": "node_modules/@rue-js/runtime/src/dom.ts",
+    "line": 2301,
+    "code": "const bindEventHandlerToCurrentRuntime = (listener: DOMEventHandler): DOMEventHandler => {\n  const runtime = getActiveRuntimeForDOMEvent()\n  if (!runtime) return listener\n\n  const cached = runtimeBoundEventHandlers.get(listener)\n  if (cached && (cached as any).__rue_runtime === runtime) {\n    return cached\n  }",
+    "kind": "调用",
+    "note": "绑定上下文后的 listener 与解析出的 capture/once/passive options 一起传给 addNativeDOMEventListener()",
+    "watch": "__rue_runtime、runtimeBoundEventHandlers",
+    "section": "带修饰符的事件绑定",
+    "originalStep": 7,
+    "sectionStart": false,
+    "definitionId": "fn-126"
+  },
+  {
+    "title": "实际调用处",
+    "file": "node_modules/@rue-js/runtime/src/dom.ts",
+    "line": 1330,
+    "code": "    addNativeDOMEventListener(el as any, eventName, listener)\n    recordHydratedEventListener(el as any, eventName, listener)\n    const targets = hydratedEventTransferTargets.get(el as object)\n    if (targets) {\n      for (const target of targets) {\n        addNativeDOMEventListener(target, eventName, listener)\n        recordHydratedEventListener(target, eventName, listener)",
+    "kind": "衔接代码",
+    "note": "addNativeDOMEventListener(el as any, eventName, listener)",
+    "section": "带修饰符的事件绑定",
+    "originalStep": 7,
+    "sectionStart": false,
+    "definitionId": "fn-127"
+  },
+  {
+    "title": "addNativeDOMEventListener()",
+    "file": "node_modules/@rue-js/runtime/src/dom.ts",
+    "line": 819,
+    "code": "const addNativeDOMEventListener = (el: any, eventName: string, listener: DOMEventHandler) => {\n  const boundListener = bindEventHandlerToCurrentRuntime(listener)\n  const options = boundListener?.__rue_options\n  if (options !== undefined) {\n    el.addEventListener(eventName, boundListener, options)\n    return\n  }\n  el.addEventListener(eventName, boundListener)",
+    "kind": "完成",
+    "note": "浏览器原生 listener 注册完成；事件触发时包装函数重新进入 Rue runtime，再执行用户 handler，本主题完成",
+    "watch": "eventName、boundListener、options",
+    "section": "带修饰符的事件绑定",
+    "originalStep": 8,
+    "sectionStart": false,
+    "definitionId": "fn-125"
+  }
+]);

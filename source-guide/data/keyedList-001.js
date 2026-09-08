@@ -1,0 +1,158 @@
+rueSourceGuide.data["keyedList"] = {
+  "title": "列表渲染：keyed diff、行复用与最少 DOM 移动",
+  "rows": []
+};
+rueSourceGuide.data["keyedList"].rows.push(...[
+  {
+    "title": "_$reconcileKeyed()",
+    "file": "node_modules/@rue-js/runtime/src/compiled-keyed-list.ts",
+    "line": 90,
+    "code": "export const _$reconcileKeyed = <T, K>(\n  parent: CompiledKeyedParent,\n  before: Node | null,\n  previous: readonly CompiledKeyedRow<T, K>[],\n  items: readonly T[],\n  getKey: (item: T, index: number) => K,\n  mount: CompiledKeyedMount<T>,\n): CompiledKeyedRow<T, K>[] =>",
+    "kind": "分支",
+    "note": "入口先处理空列表、重复 key、双元素交换和通用 diff 等分支；items 为空时直接进入 clearContiguousRows()",
+    "watch": "previous、items、keys",
+    "section": "协调入口与条件分派",
+    "originalStep": 1,
+    "sectionStart": true,
+    "definitionId": "fn-138"
+  },
+  {
+    "title": "空列表快路径的调用处",
+    "file": "node_modules/@rue-js/runtime/src/compiled-keyed-list.ts",
+    "line": 108,
+    "code": "      if (!clearContiguousRows(parent, before, previous)) {\n        for (let index = previous.length - 1; index >= 0; index -= 1) disposeRow(previous[index])\n      }\n      return []\n    }\n\n    const keys: K[] = []",
+    "kind": "衔接代码",
+    "note": "if (!clearContiguousRows(",
+    "section": "协调入口与条件分派",
+    "originalStep": 1,
+    "sectionStart": false,
+    "definitionId": "fn-139"
+  },
+  {
+    "title": "clearContiguousRows()",
+    "file": "node_modules/@rue-js/runtime/src/compiled-keyed-list.ts",
+    "line": 35,
+    "code": "const clearContiguousRows = <T, K>(\n  parent: CompiledKeyedParent,\n  before: Node | null,\n  rows: readonly CompiledKeyedRow<T, K>[],\n) => {\n  if (rows.length === 0) return true\n  const document = rows[0].node.ownerDocument\n  if (document == null || typeof document.createRange !== 'function') return false",
+    "kind": "另一路径",
+    "note": "空列表分支到此返回；非空列表不会先清空，而是从 getKey() 生成本轮 keys 并检查重复项",
+    "watch": "range、rows、before",
+    "section": "分支 A：新列表为空",
+    "originalStep": 2,
+    "sectionStart": true,
+    "definitionId": "fn-140"
+  },
+  {
+    "title": "getKey() + duplicate detection",
+    "file": "node_modules/@rue-js/runtime/src/compiled-keyed-list.ts",
+    "line": 114,
+    "code": "    const keys: K[] = []\n    keys.length = items.length\n    const seen = new Set<K>()\n    let hasDuplicateKeys = false\n    for (let index = 0; index < items.length; index += 1) {\n      const key = getKey(items[index], index)\n      if (seen.has(key)) hasDuplicateKeys = true\n      seen.add(key)",
+    "kind": "分支",
+    "note": "先计算新 keys。新旧任一列表有重复 key 时，会 dispose 旧行并逐行重建；key 唯一且满足两位置互换才进入 swap 快路径。其余情况才继续 head/tail 扫描，不能把重复 key 接到通用 Map 复用路径。",
+    "watch": "seen、hasDuplicateKeys、hadDuplicateKeys",
+    "section": "分支 B：非空列表，计算 key",
+    "originalStep": 3,
+    "sectionStart": true,
+    "definitionId": "fn-139"
+  },
+  {
+    "title": "重复 key 单独重建分支",
+    "file": "node_modules/@rue-js/runtime/src/compiled-keyed-list.ts",
+    "line": 222,
+    "code": "    if (hasDuplicateKeys || hadDuplicateKeys) {\n      for (let index = previous.length - 1; index >= 0; index -= 1) disposeRow(previous[index])\n      let cursor = before\n      for (let index = items.length - 1; index >= 0; index -= 1) {\n        const row = mountRow(index, cursor)\n        next[index] = row\n        cursor = row.node",
+    "kind": "衔接代码",
+    "note": "if (hasDuplicateKeys || hadDuplicateKeys)",
+    "section": "分支 B：非空列表，计算 key",
+    "originalStep": 3,
+    "sectionStart": false,
+    "definitionId": "fn-139"
+  },
+  {
+    "title": "two-position swap",
+    "file": "node_modules/@rue-js/runtime/src/compiled-keyed-list.ts",
+    "line": 125,
+    "code": "    // js-framework-benchmark's swap operation changes exactly two keyed positions. Keep\n    // patch semantics for every row, but avoid building a 998-entry Map and running LIS.\n    if (!hasDuplicateKeys && previous.length === items.length) {\n      let firstMismatch = -1\n      let secondMismatch = -1\n      let tooManyMismatches = false\n      let domOrderIsStable = true\n      let stableItemsRetained = true",
+    "kind": "另一路径",
+    "note": "交换快路径直接返回结果；不符合快路径时才进入下面的 head/tail scan，它是并列分支而非继续调用",
+    "watch": "firstMismatch、secondMismatch、domOrderIsStable",
+    "section": "分支 C：两位置交换快路径",
+    "originalStep": 4,
+    "sectionStart": true,
+    "definitionId": "fn-139"
+  },
+  {
+    "title": "head/tail scan",
+    "file": "node_modules/@rue-js/runtime/src/compiled-keyed-list.ts",
+    "line": 234,
+    "code": "    let oldEnd = previous.length - 1\n    let nextStart = 0\n    let nextEnd = items.length - 1\n\n    while (\n      oldStart <= oldEnd &&\n      nextStart <= nextEnd &&\n      previous[oldStart].key === keys[nextStart]",
+    "kind": "顺序",
+    "note": "两端扫描停止后，为剩余旧行建立 oldIndexByKey，并逐个匹配新中间区",
+    "watch": "oldStart、oldEnd、nextStart、nextEnd",
+    "section": "分支 D：通用 diff（未命中前述快路径）",
+    "originalStep": 5,
+    "sectionStart": true,
+    "definitionId": "fn-139"
+  },
+  {
+    "title": "oldIndexByKey",
+    "file": "node_modules/@rue-js/runtime/src/compiled-keyed-list.ts",
+    "line": 275,
+    "code": "    const oldIndexByKey = new Map<K, number>()\n    for (let index = oldStart; index <= oldEnd; index += 1) {\n      oldIndexByKey.set(previous[index].key, index)\n    }\n\n    const middleOldIndexes = Array.from({ length: nextEnd - nextStart + 1 }, () => -1)\n    const reusedOldIndexes = new Set<number>()\n    for (let index = nextStart; index <= nextEnd; index += 1) {",
+    "kind": "调用",
+    "note": "中间区得到旧位置序列后，把 middleOldIndexes 传给 stableIndexes() 求 LIS，识别已经保持相对顺序的行",
+    "watch": "oldIndex、row.patch、reusedOldIndexes",
+    "section": "分支 D：通用 diff（未命中前述快路径）",
+    "originalStep": 6,
+    "sectionStart": false,
+    "definitionId": "fn-139"
+  },
+  {
+    "title": "调用 LIS 的实际位置",
+    "file": "node_modules/@rue-js/runtime/src/compiled-keyed-list.ts",
+    "line": 297,
+    "code": "    const stable = stableIndexes(middleOldIndexes)\n    let cursor = next[nextEnd + 1]?.node ?? before\n    for (let index = nextEnd; index >= nextStart; index -= 1) {\n      let row = next[index]\n      if (row === undefined) {\n        row = mountRow(index, cursor)\n        next[index] = row",
+    "kind": "衔接代码",
+    "note": "const stable = stableIndexes(",
+    "section": "分支 D：通用 diff（未命中前述快路径）",
+    "originalStep": 6,
+    "sectionStart": false,
+    "definitionId": "fn-139"
+  },
+  {
+    "title": "stableIndexes() / LIS",
+    "file": "node_modules/@rue-js/runtime/src/compiled-keyed-list.ts",
+    "line": 57,
+    "code": "const stableIndexes = (oldIndexes: number[]): Set<number> => {\n  const predecessors = new Int32Array(oldIndexes.length)\n  predecessors.fill(-1)\n  const tails: number[] = []\n\n  for (let index = 0; index < oldIndexes.length; index += 1) {\n    const oldIndex = oldIndexes[index]\n    if (oldIndex < 0) continue",
+    "kind": "返回",
+    "note": "协调器从右向左遍历中间区：缺失 key 调 mountRow()，不在 LIS 的旧行用 insertBefore() 移动，稳定行保持不动",
+    "watch": "predecessors、tails、stable",
+    "section": "分支 D：通用 diff（未命中前述快路径）",
+    "originalStep": 7,
+    "sectionStart": false,
+    "definitionId": "fn-141"
+  },
+  {
+    "title": "从右到左挂载缺失行",
+    "file": "node_modules/@rue-js/runtime/src/compiled-keyed-list.ts",
+    "line": 302,
+    "code": "        row = mountRow(index, cursor)\n        next[index] = row\n      } else {\n        const detached = row.node.parentNode !== parent\n        if (\n          (!stable.has(index - nextStart) || detached) &&\n          (detached || row.node.nextSibling !== cursor)",
+    "kind": "衔接代码",
+    "note": "row = mountRow(index, cursor)",
+    "section": "分支 D：通用 diff（未命中前述快路径）",
+    "originalStep": 7,
+    "sectionStart": false,
+    "definitionId": "fn-139"
+  },
+  {
+    "title": "mountRow() / insertBefore()",
+    "file": "node_modules/@rue-js/runtime/src/compiled-keyed-list.ts",
+    "line": 299,
+    "code": "    for (let index = nextEnd; index >= nextStart; index -= 1) {\n      let row = next[index]\n      if (row === undefined) {\n        row = mountRow(index, cursor)\n        next[index] = row\n      } else {\n        const detached = row.node.parentNode !== parent\n        if (",
+    "kind": "完成",
+    "note": "新 rows 数组与真实 DOM 顺序同步返回，下一轮以它作为 previous rows，keyed diff 完成",
+    "watch": "row、detached、cursor、next",
+    "section": "分支 D：通用 diff（未命中前述快路径）",
+    "originalStep": 8,
+    "sectionStart": false,
+    "definitionId": "fn-139"
+  }
+]);

@@ -1,0 +1,185 @@
+rueSourceGuide.data["mount"] = {
+  "title": "首次渲染：从 main.ts 到 #app",
+  "rows": []
+};
+rueSourceGuide.data["mount"].rows.push(...[
+  {
+    "file": "node_modules/@rue-js/runtime/src/hooks/useApp.ts",
+    "line": 40,
+    "code": "const appRue = (runtime as any) || getClientRuntime()\nensureRuntimeDOMBridge(appRue)",
+    "section": "A · 创建时：appRue 和 mount 的来源",
+    "title": "useApp(RootApp)：取得并保存 appRue",
+    "note": "useApp 返回的是应用控制对象；appRue 是它闭包里保存的底层运行时。AppOrOptions 为 RootApp 函数，因此后面 App 就是 RootApp。",
+    "kind": "调用",
+    "originalStep": 1,
+    "sectionStart": true,
+    "definitionId": "fn-10"
+  },
+  {
+    "file": "node_modules/@rue-js/runtime/src/client-runtime.ts",
+    "line": 152,
+    "code": "export const getClientRuntime = (): Rue => {\n  const bridge = getClientDOMBridge()\n  const cache = getRuntimeCache()\n  let runtime = cache.get(bridge)\n\n  if (!runtime && canTrackRuntime(clientRuntimeGlobal.__rue)) {\n    runtime = clientRuntimeGlobal.__rue as Rue\n  }\n  if (!runtime) {\n    runtime = createClientRuntime()\n  } else {\n    installRuntimeErrorBridge(runtime)\n    ensureRuntimeDOMBridge(runtime)",
+    "section": "A · 创建时：appRue 和 mount 的来源",
+    "title": "getClientRuntime()：查找当前 DOM bridge 的缓存",
+    "note": "有缓存或已有 __rue 时复用；只有两者都没有，才执行下面 A03–A08 的创建过程。",
+    "kind": "条件",
+    "originalStep": 1,
+    "sectionStart": false,
+    "definitionId": "fn-11"
+  },
+  {
+    "file": "node_modules/@rue-js/runtime/src/client-runtime.ts",
+    "line": 144,
+    "code": "export const createClientRuntime = (): Rue => {\n  const bridge = getClientDOMBridge()\n  const runtime = installRuntimeErrorBridge(createRueRuntime(bridge) as Rue)\n  markRuntimeDOMBridge(runtime, bridge)\n  return runtime\n}",
+    "section": "A · 创建时：appRue 和 mount 的来源",
+    "title": "createClientRuntime() → createRueRuntime(bridge)",
+    "note": "以下创建步骤仅在创建新 runtime 时发生；不是每次 mount 都执行。",
+    "kind": "调用",
+    "originalStep": 1,
+    "sectionStart": false,
+    "definitionId": "fn-12"
+  },
+  {
+    "file": "node_modules/@rue-js/runtime-vapor/dist/runtime-entry.js",
+    "line": 16,
+    "code": "return wrapCreateRue(createJsRuntime, normalizeRenderTriggeredEvent);",
+    "section": "A · 创建时：appRue 和 mount 的来源",
+    "title": "createRuntimeEntry() 返回经过 wrapCreateRue 包装的工厂",
+    "note": "调用工厂后，wrapCreateRue 内的 rawCreateRue(adapter) 会先创建原始 runtime。",
+    "kind": "调用",
+    "originalStep": 1,
+    "sectionStart": false,
+    "definitionId": "fn-13"
+  },
+  {
+    "file": "node_modules/@rue-js/runtime-vapor/dist/js-runtime/create-rue.js",
+    "line": 4,
+    "code": "export const createRue = (adapter, reactiveKernel) => createRueBase(adapter, reactiveKernel, createCompatMountController());",
+    "section": "A · 创建时：appRue 和 mount 的来源",
+    "title": "createRue() → createRueBase()",
+    "note": "createCompatMountController() 创建分派器；createRueBase() 创建 runtime 对象。",
+    "kind": "调用",
+    "originalStep": 1,
+    "sectionStart": false,
+    "definitionId": "fn-14"
+  },
+  {
+    "file": "node_modules/@rue-js/runtime-vapor/dist/js-runtime/create-rue-base.js",
+    "line": 122,
+    "code": "mount(app, container) {\n    console.trace('mountmount')\n    /*\n     * [04 Runtime 挂载入口]\n     * 调用链：appRue.mount() -> runtime.mount() -> appController.mount() -> renderContainer()。\n     * 观察：app、container、root、input。\n     */\n    // oxlint-disable-next-line no-debugger -- Rue 源码学习用自动断点。\n    if (globalThis.__RUE_RENDER_DEBUG__?.take('04.runtime-mount')) debugger;\n    return appController.mount(app, container, root => {",
+    "section": "A · 创建时：appRue 和 mount 的来源",
+    "title": "createRueBase()：对象里的原始 mount",
+    "note": "originalMount 指的就是此处定义的方法。此时仅定义函数；挂载逻辑尚未执行。",
+    "kind": "定义",
+    "originalStep": 1,
+    "sectionStart": false,
+    "definitionId": "fn-15"
+  },
+  {
+    "file": "node_modules/@rue-js/runtime-vapor/dist/runtime-entry-wrap.js",
+    "line": 190,
+    "code": "export const wrapCreateRue = (rawCreateRue, normalizeRenderTriggeredEvent) => (adapter) => {\n    const runtime = installRuntimeErrorBridge(rawCreateRue(adapter));\n    if (!canTrackRuntime(runtime)) {\n        return runtime;\n    }\n    for (const methodName of [\n        'mount',\n        'render',\n        'renderAnchor',\n        'renderBetween',\n        'renderStatic',\n    ]) {\n        wrapRuntimeEntryMethod(runtime, methodName);\n    }\n    wrapRenderTriggeredHook(runtime, normalizeRenderTriggeredEvent);\n    return runtime;",
+    "section": "A · 创建时：appRue 和 mount 的来源",
+    "title": "wrapCreateRue()：逐个包装 mount / render 等入口",
+    "note": "rawCreateRue 返回对象后，循环把 mount 交给 wrapRuntimeEntryMethod。",
+    "kind": "调用",
+    "originalStep": 1,
+    "sectionStart": false,
+    "definitionId": "fn-16"
+  },
+  {
+    "file": "node_modules/@rue-js/runtime-vapor/dist/runtime-entry-wrap.js",
+    "line": 136,
+    "code": "const wrapRuntimeEntryMethod = (runtime, methodName) => {\n    const original = runtime[methodName];\n    if (typeof original !== 'function') {\n        return;\n    }\n    const wrappedRuntimeEntry = function wrappedRuntimeEntry(...args) {\n        runtime[RUE_PENDING_ENTRY_ERROR_KEY] = undefined;\n        runtime[RUE_ACTIVE_ENTRY_DEPTH_KEY] = (runtime[RUE_ACTIVE_ENTRY_DEPTH_KEY] ?? 0) + 1;\n        let rethrowingPendingEntryError = false;\n        try {\n            const result = Reflect.apply(original, this, args);\n            const pending = runtime[RUE_PENDING_ENTRY_ERROR_KEY];",
+    "section": "A · 创建时：appRue 和 mount 的来源",
+    "title": "wrapRuntimeEntryMethod()：保存原方法 original",
+    "note": "methodName 为 mount；original 保存上一行的原始 mount。包装函数通过闭包一直持有 original。",
+    "kind": "定义",
+    "originalStep": 1,
+    "sectionStart": false,
+    "definitionId": "fn-17"
+  },
+  {
+    "file": "node_modules/@rue-js/runtime-vapor/dist/runtime-entry-wrap.js",
+    "line": 167,
+    "code": "if (!Reflect.set(runtime, methodName, wrappedRuntimeEntry)) {\n    throw new TypeError(`Cannot wrap runtime entry method: ${methodName}`);\n}",
+    "section": "A · 创建时：appRue 和 mount 的来源",
+    "title": "Reflect.set()：把 runtime.mount 替换成包装函数",
+    "note": "之后 appRue.mount 指向 wrappedRuntimeEntry；original 仍指向 create-rue-base.js 的 mount。",
+    "kind": "赋值",
+    "originalStep": 1,
+    "sectionStart": false,
+    "definitionId": "fn-17"
+  },
+  {
+    "file": "node_modules/@rue-js/runtime/src/client-runtime.ts",
+    "line": 167,
+    "code": "cache.set(bridge, runtime)\nclientRuntimeGlobal.__rue = runtime\nreturn runtime",
+    "section": "A · 创建时：appRue 和 mount 的来源",
+    "title": "getClientRuntime() 返回同一个对象 → appRue 接住",
+    "note": "因此 appRue 是 runtime 对象；appRue.mount 是包装函数。已有缓存时，上面的对象创建和包装已经发生过。",
+    "kind": "返回",
+    "originalStep": 1,
+    "sectionStart": false,
+    "definitionId": "fn-11"
+  },
+  {
+    "file": "node_modules/@rue-js/runtime/src/hooks/useApp.ts",
+    "line": 73,
+    "code": "use(plugin: any, ...options: any[]) {\n  // 透传到 Rue.use，支持多插件链式安装\n  runWithClientRuntime(appRue, () => {\n    appRue.use(plugin, ...options)\n  })\n  return this\n},",
+    "section": "A · 创建时：appRue 和 mount 的来源",
+    "title": "useApp() 返回应用控制对象；.use(router) 返回 this",
+    "note": "main.ts 的链式表达式接着调用此应用对象的 mount(\"#app\")。这里的 mount(container) 与 appRue.mount(app, container) 是两个不同方法。",
+    "kind": "调用",
+    "originalStep": 1,
+    "sectionStart": false,
+    "definitionId": "fn-18"
+  },
+  {
+    "file": "app/main.ts",
+    "line": 11,
+    "code": "useApp(RootApp).use(router).mount('#app')",
+    "section": "B · 开始挂载：解析容器 → 执行 runner",
+    "title": "main.ts → 应用对象.mount(\"#app\")",
+    "note": "下面按首次挂载成功路径展开；#app 存在，容器尚未归属其它应用。",
+    "kind": "调用",
+    "originalStep": 1,
+    "sectionStart": true
+  },
+  {
+    "file": "node_modules/@rue-js/runtime/src/hooks/useApp.ts",
+    "line": 86,
+    "code": "mount(container: string | DomElementLike) {",
+    "section": "B · 开始挂载：解析容器 → 执行 runner",
+    "title": "useApp 返回对象的 mount(container)",
+    "note": "形参 container = \"#app\"；闭包中 App = RootApp，appRue = 前面保存的 runtime。",
+    "kind": "调用",
+    "originalStep": 2,
+    "sectionStart": false,
+    "definitionId": "fn-19"
+  },
+  {
+    "file": "node_modules/@rue-js/runtime/src/hooks/useApp.ts",
+    "line": 64,
+    "code": "const normalizeContainer = (container: string | DomElementLike): DomElementLike | null => {\n  if (typeof container === 'string') {\n    const el = querySelector(container)\n    return (el as DomElementLike) || null\n  }\n  return container as DomElementLike\n}",
+    "section": "B · 开始挂载：解析容器 → 执行 runner",
+    "title": "normalizeContainer(container)",
+    "note": "字符串选择器交给 querySelector(container)，得到真实 DOM 元素 el；如果传入的已经是元素，则直接返回。",
+    "kind": "调用",
+    "originalStep": 2,
+    "sectionStart": false,
+    "definitionId": "fn-20"
+  },
+  {
+    "file": "node_modules/@rue-js/runtime/src/hooks/useApp.ts",
+    "line": 94,
+    "code": "const el = normalizeContainer(container)\nif (!el) return\n\nconst ownedContainer = containerRef || pendingContainerRef\nif (ownedContainer) {\n  if (ownedContainer === el) return\n  throw new Error('Rue app is already mounted on a different container.')\n}\n",
+    "section": "B · 开始挂载：解析容器 → 执行 runner",
+    "title": "回到 mount：el 检查、重复挂载检查",
+    "note": "el 为真实 #app；没有元素则结束，同一应用重复挂载同一容器也直接结束。当前首次挂载继续向下。",
+    "kind": "返回",
+    "originalStep": 2,
+    "sectionStart": false,
+    "definitionId": "fn-19"
+  }
+]);

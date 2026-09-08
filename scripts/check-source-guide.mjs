@@ -8,8 +8,13 @@ const projectRoot=process.env.RUE_GUIDE_PROJECT_ROOT || path.resolve(path.dirnam
 const filename=process.argv.find(arg=>arg.endsWith('.html')) || path.join(projectRoot,'RUE_SOURCE_GUIDE.html');
 const html=fs.readFileSync(filename,'utf8');
 const match=html.match(/<script type="application\/json" id="guide-data">([\s\S]*?)<\/script>/);
-assert.ok(match,'Embedded guide data missing');
-const data=JSON.parse(match[1]);
+const context=vm.createContext({});
+for(const item of html.matchAll(/<script defer src="(.*?)"><\/script>/g)){
+  const source=fs.readFileSync(path.resolve(path.dirname(filename),item[1]),'utf8');
+  new vm.Script(source);
+  if(!item[1].endsWith('/reader.js'))vm.runInContext(source,context);
+}
+const data=match?JSON.parse(match[1]):context.rueSourceGuide.data;
 const themes=Object.entries(data).filter(([key])=>key!=='definitions');
 assert.equal(themes.length,20,'All 20 themes must remain available');
 const files=new Map();
@@ -40,6 +45,6 @@ for(const [key,flow] of themes){
   }
 }
 const ids=[...html.matchAll(/\bid="([^"\s]+)"/g)].map(m=>m[1]).filter(id=>!id.includes("'"));
-for(const id of ['guide-data','flow','title','subtitle','sections','track','end'])assert.ok(ids.includes(id),'Missing element '+id);
+for(const id of ['flow','title','subtitle','sections','track','end'])assert.ok(ids.includes(id),'Missing element '+id);
 for(const script of html.matchAll(/<script>([\s\S]*?)<\/script>/g))new vm.Script(script[1]);
 console.log(JSON.stringify({themes:themes.length,rows,sourceLinks,sourceFiles:files.size,externalBoundaries,fullFunctions:Object.keys(data.definitions).length,syntax:'OK',sourceSnapshots:'OK'},null,2));
