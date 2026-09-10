@@ -14,14 +14,14 @@ rueSourceGuide.minimalImplementations["mount"] = {
   },
   "3": {
     "title": "03 · 最小实现",
-    "intro": "这是「应用挂载」第 3 步的最小手写版，只保留当前节点的核心动作。对应源码线索：以下创建步骤仅在创建新 runtime 时发生；不是每次 mount 都执行。执行后继续到「createRuntimeEntry() 返回经过 wrapCreateRue 包装的工厂」。",
-    "code": "function mountStep003_createClientRuntimeCreateRueRuntimeBridge(ctx) {\n  const value = ctx.run(\"createClientRuntime() → createRueRuntime(bridge)\")\n  ctx.next(\"createRuntimeEntry() 返回经过 wrapCreateRue 包装的工厂\", value)\n  return value\n}",
+    "intro": "这是「应用挂载」第 3 步的最小手写版，只保留当前节点的核心动作。对应源码线索：以下创建步骤仅在创建新 runtime 时发生。这里调用的 createRueRuntime 是从 @rue-js/runtime-vapor 导入的工厂，它在模块加载时已由 createRuntimeEntry(...) 生成。执行后继续到「模块加载时：createRuntimeEntry() 先生成 createRueRuntime 工厂」。",
+    "code": "function mountStep003_createClientRuntimeCreateRueRuntimeBridge(ctx) {\n  const value = ctx.run(\"createClientRuntime() → createRueRuntime(bridge)\")\n  ctx.next(\"模块加载时：createRuntimeEntry() 先生成 createRueRuntime 工厂\", value)\n  return value\n}",
     "watch": "手写时先确认输入、返回值和下一步调用。"
   },
   "4": {
     "title": "04 · 最小实现",
-    "intro": "这是「应用挂载」第 4 步的最小手写版，只保留当前节点的核心动作。对应源码线索：调用工厂后，wrapCreateRue 内的 rawCreateRue(adapter) 会先创建原始 runtime。执行后继续到「createRue() → createRueBase()」。",
-    "code": "function mountStep004_createRuntimeEntryWrapCreateRue(ctx) {\n  const value = ctx.run(\"createRuntimeEntry() 返回经过 wrapCreateRue 包装的工厂\")\n  ctx.next(\"createRue() → createRueBase()\", value)\n  return value\n}",
+    "intro": "这是「应用挂载」第 4 步的最小手写版，只保留当前节点的核心动作。对应源码线索：这一步不是从 createClientRuntime 函数体里临时调用过来的；runtime-vapor/index.js 在模块初始化时先执行 createRuntimeEntry(...)，导出的 createRueRuntime 已经是 wrapCreateRue 包装后的工厂。执行后继续到「createRue() → createRueBase()」。",
+    "code": "function mountStep004_createRuntimeEntryCreateRueRuntime(ctx) {\n  const value = ctx.run(\"模块加载时：createRuntimeEntry() 先生成 createRueRuntime 工厂\")\n  ctx.next(\"createRue() → createRueBase()\", value)\n  return value\n}",
     "watch": "手写时先确认输入、返回值和下一步调用。"
   },
   "5": {
