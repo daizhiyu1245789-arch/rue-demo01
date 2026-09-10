@@ -19,6 +19,9 @@
 <p class="implementation-label">SOURCE EXPLORER <span>/ 源码实现</span></p>
 <h1 id="title"></h1>
 <p id="subtitle"></p>
+<nav class="view-switch" aria-label="源码视图"><a id="view-outline" href="#flow=mount&view=outline">☷ 导读结构</a><a id="view-map" href="#flow=mount&view=map">⌘ 思维导图</a><a id="view-sequence" href="#flow=mount&view=sequence">↓ 完整源码顺序图</a><a id="view-handwritten" href="#flow=mount&view=handwritten">手写完整实现</a></nav>
+<section id="outline-scroll" class="mindmap-scroll" aria-label="源码导读结构" tabindex="0" hidden><div class="map-intro"><p>先看主干，再展开函数。分支表示阅读层级；实际调用、条件与返回以完整源码步骤为准。</p><div><button type="button" class="tool-button" id="outline-expand">展开全部分支</button><button type="button" class="tool-button" id="outline-collapse">收起全部分支</button></div></div><div id="outline"></div></section>
+<section id="mindmap-scroll" class="graph-scroll" aria-label="源码思维导图" tabindex="0" hidden><div class="map-intro"><p>中心是当前主题，左右是执行阶段和函数分支。拖动空白处移动画布，滚轮缩放，点击分支展开源码节点。</p><div class="map-actions"><button type="button" class="tool-button" id="map-zoom-out" aria-label="缩小思维导图">−</button><output id="map-zoom" aria-live="polite">100%</output><button type="button" class="tool-button" id="map-zoom-in" aria-label="放大思维导图">＋</button><button type="button" class="tool-button" id="map-fit">适合窗口</button><button type="button" class="tool-button" id="map-expand">展开全部</button><button type="button" class="tool-button" id="map-collapse">收起全部</button></div></div><div id="mindmap" role="application" aria-label="可拖动和缩放的 Rue 源码思维导图"></div></section>
 <div class="legend"><b>↓ 向下跟踪调用与返回</b><span class="return">返回：回到调用者继续</span><span>衔接代码：对应的调用处 / 回调定义</span><span>分支、异步分别标出触发条件</span></div>
 <div class="reader-toolbar" role="toolbar" aria-label="源码阅读工具">
 <div class="toolbar-group"><div class="font-control"><button class="tool-button" id="font-down" type="button" aria-label="缩小代码字号">A−</button><output id="font-size" aria-live="polite">13px</output><button class="tool-button" id="font-up" type="button" aria-label="放大代码字号">A+</button></div><button class="tool-button" id="wrap-code" type="button" aria-pressed="false">自动换行</button><button class="tool-button" id="explain-toggle" type="button" aria-pressed="true">详细讲解</button><button class="tool-button" id="expand-all" type="button" aria-pressed="false">展开全部函数</button></div>
@@ -36,6 +39,7 @@
 <div class="toast" id="toast" role="status" hidden></div>
 <script defer src="./source-guide/data/init.js"></script>
 <script defer src="./source-guide/data/compile-001.js"></script>
+<script defer src="./source-guide/data/compile-016.js"></script>
 <script defer src="./source-guide/data/mount-001.js"></script>
 <script defer src="./source-guide/data/mount-016.js"></script>
 <script defer src="./source-guide/data/mount-031.js"></script>
@@ -92,6 +96,7 @@
 <script defer src="./source-guide/data/definitions-221.js"></script>
 <script defer src="./source-guide/data/definitions-241.js"></script>
 <script defer src="./source-guide/data/definitions-261.js"></script>
+<script defer src="./source-guide/generated/compile-explanations.js"></script>
 <script defer src="./source-guide/generated/mount-explanations-001-015.js"></script>
 <script defer src="./source-guide/generated/mount-explanations-016-030.js"></script>
 <script defer src="./source-guide/generated/mount-explanations-031-045.js"></script>
@@ -99,6 +104,47 @@
 <script defer src="./source-guide/generated/mount-explanations-061-075.js"></script>
 <script defer src="./source-guide/generated/mount-explanations-076-090.js"></script>
 <script defer src="./source-guide/generated/mount-explanations-091-105.js"></script>
+<script defer src="./source-guide/generated/compile-minimal.js"></script>
+<script defer src="./source-guide/generated/mount-minimal.js"></script>
+<script defer src="./source-guide/generated/lifecycle-minimal.js"></script>
+<script defer src="./source-guide/generated/cleanup-minimal.js"></script>
+<script defer src="./source-guide/generated/tracking-minimal.js"></script>
+<script defer src="./source-guide/generated/update-minimal.js"></script>
+<script defer src="./source-guide/generated/derived-minimal.js"></script>
+<script defer src="./source-guide/generated/domBinding-minimal.js"></script>
+<script defer src="./source-guide/generated/conditional-minimal.js"></script>
+<script defer src="./source-guide/generated/keyedList-minimal.js"></script>
+<script defer src="./source-guide/generated/componentPatch-minimal.js"></script>
+<script defer src="./source-guide/generated/router-minimal.js"></script>
+<script defer src="./source-guide/generated/context-minimal.js"></script>
+<script defer src="./source-guide/generated/errors-minimal.js"></script>
+<script defer src="./source-guide/generated/extensions-minimal.js"></script>
+<script defer src="./source-guide/generated/teleport-minimal.js"></script>
+<script defer src="./source-guide/generated/suspense-minimal.js"></script>
+<script defer src="./source-guide/generated/keepAlive-minimal.js"></script>
+<script defer src="./source-guide/generated/transition-minimal.js"></script>
+<script defer src="./source-guide/generated/ssr-minimal.js"></script>
+<script defer src="./source-guide/handwritten-implementations.js"></script>
+<script defer src="./source-guide/generated/lifecycle-explanations.js"></script>
+<script defer src="./source-guide/generated/cleanup-explanations.js"></script>
+<script defer src="./source-guide/generated/tracking-explanations.js"></script>
+<script defer src="./source-guide/generated/update-explanations.js"></script>
+<script defer src="./source-guide/generated/derived-explanations.js"></script>
+<script defer src="./source-guide/generated/domBinding-explanations.js"></script>
+<script defer src="./source-guide/generated/conditional-explanations.js"></script>
+<script defer src="./source-guide/generated/keyedList-explanations.js"></script>
+<script defer src="./source-guide/generated/componentPatch-explanations.js"></script>
+<script defer src="./source-guide/generated/router-explanations.js"></script>
+<script defer src="./source-guide/generated/context-explanations.js"></script>
+<script defer src="./source-guide/generated/errors-explanations.js"></script>
+<script defer src="./source-guide/generated/extensions-explanations.js"></script>
+<script defer src="./source-guide/generated/teleport-explanations.js"></script>
+<script defer src="./source-guide/generated/suspense-explanations.js"></script>
+<script defer src="./source-guide/generated/keepAlive-explanations.js"></script>
+<script defer src="./source-guide/generated/transition-explanations.js"></script>
+<script defer src="./source-guide/generated/ssr-explanations.js"></script>
+<script defer src="./source-guide/mindmap.js"></script>
+<script defer src="./source-guide/graph.js"></script>
 <script defer src="./source-guide/reader.js"></script>
 </body>
 </html>

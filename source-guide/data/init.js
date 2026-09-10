@@ -1,1 +1,1 @@
-globalThis.rueSourceGuide = {data:{definitions:{}}, mountExplanations:{}};
+globalThis.rueSourceGuide = {data:{definitions:{}}, mountExplanations:{}, compileExplanations:{}, explanations:{}, minimalImplementations:{}, handwrittenImplementations:{}};

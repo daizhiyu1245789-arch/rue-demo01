@@ -1,5 +1,5 @@
 rueSourceGuide.data["compile"] = {
-  "title": "编译过程：TSX 如何变成 Vapor setup",
+  "title": "Rue.js 与 WebAssembly：TSX 编译到浏览器运行",
   "rows": []
 };
 rueSourceGuide.data["compile"].rows.push(...[
@@ -111,6 +111,55 @@ rueSourceGuide.data["compile"].rows.push(...[
     "definitionId": "fn-6"
   },
   {
+    "title": "@swc/core Compiler.transformSync() → bindings.transformSync()",
+    "file": "node_modules/.pnpm/@swc+core@1.15.33/node_modules/@swc/core/index.js",
+    "line": 233,
+    "code": "    transformSync(src, options) {\n        var _a, _b, _c;\n        const isModule = typeof src !== \"string\";\n        options = options || {};\n        if ((_a = options === null || options === void 0 ? void 0 : options.jsc) === null || _a === void 0 ? void 0 : _a.parser) {\n            options.jsc.parser.syntax =\n                (_b = options.jsc.parser.syntax) !== null && _b !== void 0 ? _b : \"ecmascript\";\n        }\n        const { plugin } = options, newOptions = __rest(options, [\"plugin\"]);\n        if (bindings) {\n            if (plugin) {\n                const m = typeof src === \"string\"\n                    ? this.parseSync(src, (_c = options === null || options === void 0 ? void 0 : options.jsc) === null || _c === void 0 ? void 0 : _c.parser, options.filename)\n                    : src;\n                return this.transformSync(plugin(m), newOptions);\n            }\n            return bindings.transformSync(isModule ? JSON.stringify(src) : src, isModule, toBuffer(newOptions));",
+    "note": "Worker 中的 JavaScript 调进 @swc/core 包装层；toBuffer(newOptions) 序列化配置，bindings.transformSync 跨过 Node N-API 进入 SWC 原生实现。",
+    "kind": "JS → 原生",
+    "section": "JS Worker → SWC 原生层",
+    "sectionStart": true,
+    "originalStep": 3
+  },
+  {
+    "title": "SWC 原生层：读取并实例化 swc-plugin-rue.wasm",
+    "note": "pluginPath 指向 6,529,262 字节的 swc-plugin-rue.wasm。实例化工作由 SWC 插件宿主完成，并注入 env 与 wasi_snapshot_preview1 所需函数。",
+    "kind": "Wasm 边界",
+    "section": "SWC 原生层 → Rue WebAssembly",
+    "sectionStart": true,
+    "originalStep": 3,
+    "boundary": "这里没有 Rue JavaScript 逐行源码。@swc/core 的原生绑定根据 jsc.experimental.plugins 中的 pluginPath 加载 WebAssembly 模块。该二进制导出 memory、__alloc、__free、__get_transform_plugin_core_pkg_diag 和 __transform_plugin_process_impl。"
+  },
+  {
+    "title": "WebAssembly.__transform_plugin_process_impl：改写 SWC AST",
+    "note": "SWC 插件协议把解析后的程序 AST 和元数据交给 Rue Wasm。Rust 编译出的插件遍历 AST，把 TSX/JSX 改写为 Rue Vapor setup 与运行时 helper 调用。",
+    "kind": "Wasm 执行",
+    "section": "SWC 原生层 → Rue WebAssembly",
+    "sectionStart": false,
+    "originalStep": 3,
+    "boundary": "SWC 插件宿主调用 Wasm 导出的 __transform_plugin_process_impl。输入与输出采用 SWC 插件 ABI 的序列化表示，不是把 JavaScript 字符串直接传给浏览器 WebAssembly API。发布包只有 .wasm 二进制，因此此处以真实导出函数作为可观察边界。"
+  },
+  {
+    "title": "Wasm → SWC Host：读取配置、回传 AST 与诊断",
+    "note": "Wasm 通过宿主导入函数取得 { staticTemplates } 配置，并把转换结果或诊断交回 SWC。宿主随后继续 SWC 自身的代码生成。",
+    "kind": "Wasm → 原生",
+    "section": "SWC 原生层 → Rue WebAssembly",
+    "sectionStart": false,
+    "originalStep": 3,
+    "boundary": "该 Wasm 实际导入 env.__get_transform_plugin_config、env.__set_transform_result、env.__emit_diagnostics、env.__set_transform_plugin_core_pkg_diagnostics 与 env.__add_pure_comment_proxy。__set_transform_result 是 Rue Wasm 把改写后 AST 交还 SWC 宿主的返回通道。"
+  },
+  {
+    "title": "bindings.transformSync() 返回 TransformOutput → Worker JavaScript",
+    "file": "node_modules/.pnpm/@swc+core@1.15.33/node_modules/@swc/core/index.js",
+    "line": 249,
+    "code": "            return bindings.transformSync(isModule ? JSON.stringify(src) : src, isModule, toBuffer(newOptions));",
+    "note": "Rue Wasm 返回的是改写后的 AST；SWC 原生层完成打印/代码生成后，@swc/core 的 JavaScript 调用才拿到包含 code 的 TransformOutput。",
+    "kind": "原生 → JS",
+    "section": "Wasm → SWC → Worker JavaScript",
+    "sectionStart": true,
+    "originalStep": 4
+  },
+  {
     "title": "swc.transformSync 返回 → parentPort.postMessage",
     "file": "node_modules/@rue-js/vite-plugin-rue/transform-worker.mjs",
     "line": 36,
@@ -120,53 +169,5 @@ rueSourceGuide.data["compile"].rows.push(...[
     "section": "Worker 线程：执行 SWC",
     "sectionStart": false,
     "originalStep": 4
-  },
-  {
-    "title": "worker.once(\"message\", message => …) → resolve(code)",
-    "file": "node_modules/@rue-js/vite-plugin-rue/index.mjs",
-    "line": 3289,
-    "code": "    worker.once('message', message => {\n      settle(() => {\n        if (message?.error) {\n          reject(deserializeWorkerError(message.error))\n          return\n        }\n\n        resolve(String(message?.code ?? ''))\n      })\n    })\n",
-    "note": "主线程 message 事件执行回调。settle 防止重复完成，清 timer；resolve 解除等待。",
-    "kind": "异步继续",
-    "section": "Vite 主线程：接收结果",
-    "sectionStart": true,
-    "originalStep": 4,
-    "definitionId": "fn-7"
-  },
-  {
-    "title": "await scheduleTransform 完成 → normalizedOut",
-    "file": "node_modules/@rue-js/vite-plugin-rue/index.mjs",
-    "line": 3123,
-    "code": "    const normalizedOut = preserveRscDirectivePrologue(code, out)\n    if (!includeHeader) {\n      return normalizedOut\n    }\n    const headers = [RUE_TRANSFORM_HEADER]\n    if (hasReactivePropsDestructureRewrite(normalizedOut)) {\n      headers.push(RUE_REACTIVE_PROPS_DESTRUCTURE_HEADER)\n    }\n    return `${headers.join('\\n')}\\n${normalizedOut}`\n  } catch (error) {\n    throw createStageError({\n      id,",
-    "note": "恢复等待中的 transformWithSwcPlugin；加转换头，返回 code/islands/serverIslands。",
-    "kind": "返回",
-    "section": "Vite 主线程：接收结果",
-    "sectionStart": false,
-    "originalStep": 4,
-    "definitionId": "fn-8"
-  },
-  {
-    "title": "回到 transform()：更新 manifest → 返回代码给 Vite",
-    "file": "node_modules/@rue-js/vite-plugin-rue/index.mjs",
-    "line": 3686,
-    "code": "      if (!out || out.code === code) return null\n      updateIslandManifest(id, out.islands)\n      updateServerIslandRegistry(id, out.serverIslands)\n\n      // 调试日志：提示已转换模块\n      if (debug && out.code && out.code !== code) {\n        console.log(`[rue-vapor] transformed: ${id}`)\n      }\n      // 返回转换后的代码与空映射\n      return { code: out.code, map: null }\n    },\n    /** Vite 配置解析完成钩子：默认执行器保持 worker 隔离，避免 build 阶段同步卡住。 */",
-    "note": "Vite 收到转换后的 JavaScript；浏览器稍后加载它。",
-    "kind": "返回",
-    "section": "Vite 主线程：接收结果",
-    "sectionStart": false,
-    "originalStep": 4,
-    "definitionId": "fn-0"
-  },
-  {
-    "title": "浏览器挂载阶段：wrappedSetup → 编译生成的 setup",
-    "file": "node_modules/@rue-js/runtime/src/vapor-core.ts",
-    "line": 60,
-    "code": "      return withDOMHostOperations(parentContext, () => setup(parentContext))\n    } finally {\n      bridge?.endVaporScope(didPush)\n    }\n  }",
-    "note": "浏览器的组件调用构造 handle；挂载器调用 wrappedSetup，后者在 DOM host 上下文真正执行生成的 setup。完整运行入口见“首次渲染”主题。",
-    "kind": "运行阶段",
-    "section": "浏览器：运行转换产物",
-    "sectionStart": true,
-    "originalStep": 5,
-    "definitionId": "fn-9"
   }
 ]);
