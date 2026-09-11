@@ -43,3 +43,14 @@ mount 和 compile 保留手写解释；其它主题由 build-flow-explanations.m
 - keepAlive: 21 条执行解读
 - transition: 20 条执行解读
 - ssr: 24 条执行解读
+
+## 源码内标识注释
+
+应用挂载流程已经在对应源码位置写入 [RUE-MOUNT-001] 到 [RUE-MOUNT-105]。编号和 RUE_SOURCE_GUIDE.html 的节点一一对应：
+
+- [RUE-MOUNT-001] 对应 RUE_SOURCE_GUIDE.html#flow=mount&view=sequence&node=1
+- [RUE-MOUNT-037] 对应 RUE_SOURCE_GUIDE.html#flow=mount&view=sequence&node=37
+- [RUE-MOUNT-105] 对应 RUE_SOURCE_GUIDE.html#flow=mount&view=sequence&node=105
+
+这些注释只用于源码阅读，不改变执行逻辑。后续如果更新 mount 节点，先同步 source-guide/data/mount-*.js，再重新运行标识脚本检查缺失编号。
+
